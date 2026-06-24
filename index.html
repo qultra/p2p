@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 완벽 작동판</title>
+  <title>P2P 비밀 메신저 – 최종 완전판</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
   <meta name="referrer" content="no-referrer">
   <style>
-    /* ========== CSS 동일 ========== */
     :root {
       --bg: #06090f; --surface: #0f141e; --card: rgba(15,20,30,0.9);
       --text: #e0e5f0; --sub: #8892b0; --accent: #5b8df0; --danger: #f97070;
@@ -104,7 +103,6 @@
 <div class="container">
   <div class="header"><h1>🔐 P2P 비밀채팅</h1><div class="status-bar"><span id="connDot" class="dot off"></span><span id="connLabel">오프라인</span></div></div>
   <div class="main-content" id="mainArea">
-    <!-- 홈 화면 -->
     <div id="simpleMode" class="view">
       <div class="card text-center">
         <h3 style="margin-bottom:4px;">서버 없이 완벽한 익명성</h3>
@@ -115,11 +113,9 @@
       <div style="font-size:0.8rem; color:var(--sub); margin-bottom:8px; font-weight:600;">📋 대화 목록</div>
       <div class="contact-list" id="contactList"></div>
     </div>
-    <!-- 새 채팅 모달 -->
     <div id="nameModal" class="modal hidden">
       <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="상대방 이름 입력"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" onclick="confirmNewChat()" style="flex:1;">확인</button><button class="btn" onclick="closeNameModal()" style="flex:1;">취소</button></div></div>
     </div>
-    <!-- Offer 패널 -->
     <div id="offerPanel" class="view hidden">
       <div class="card text-center">
         <div class="spinner mb" id="offerSpinner" style="display:none;"></div>
@@ -132,12 +128,10 @@
         <button class="btn mt" onclick="goHome()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>홈으로</button>
       </div>
     </div>
-    <!-- Answer 패널 -->
     <div id="answerPanel" class="view hidden">
       <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea><button class="btn primary mt" onclick="createAnswerFromOffer()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>연결 시작</button></div>
       <button class="btn mt" onclick="goHome()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>홈으로</button>
     </div>
-    <!-- 채팅 화면 -->
     <div id="chatScreen" class="view hidden">
       <div class="chat-header">
         <button class="btn-small" onclick="goHome()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
@@ -177,7 +171,6 @@
     </div>
   </div>
 </div>
-<!-- Answer 모달 -->
 <div id="answerModal" class="modal hidden">
   <div class="modal-content">
     <h3>📤 내 Answer 링크</h3>
@@ -189,7 +182,7 @@
 
 <script>
 // =====================================================================
-//  P2P 비밀 메신저 – 완벽 작동판 (버그 완전 해결)
+//  P2P 비밀 메신저 – 최종 완전판 (모든 버그 수정)
 // =====================================================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -212,7 +205,7 @@ const DESTROY_PREFIX = 'p2p_destroyed_';
 
 if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-// ─── 유틸리티 함수 ────────────────────────────
+// ─── 유틸리티 ─────────────────────────────────
 const buf2hex = b => [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const str2buf = s => textEncoder.encode(s);
 const buf2b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
@@ -224,16 +217,16 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<
 function updateConn(ok) { document.getElementById('connDot').className = 'dot ' + (ok ? 'on' : 'off'); document.getElementById('connLabel').textContent = ok ? '연결됨' : '오프라인'; }
 function compareBuffers(b1, b2) { for (let i = 0; i < b1.byteLength; i++) { if (b1[i] < b2[i]) return -1; if (b1[i] > b2[i]) return 1; } return 0; }
 
-// ─── 더블 래칫 암호화 상수 ────────────────────
+// ─── 더블 래칫 암호화 상수 (최대치) ──────────
 const ECDH_ALG = { name: 'ECDH', namedCurve: 'P-521' };
-const PBKDF2_ITERS = 20000000;
+const PBKDF2_ITERS = 20000000;   // 2천만
 const SALT_SIZE = 4096;
 const AES_LEN = 256;
 const HMAC_HASH = 'SHA-512';
 const TYPING_AES_LEN = 128;
 const PADDING_MIN = 256, PADDING_MAX = 512;
 
-// ─── 세션 관리 ────────────────────────────────
+// ─── 세션 객체 ────────────────────────────────
 function getOrCreateSession(peerId) {
   if (!sessions[peerId]) sessions[peerId] = {
     pc: null, dc: null, typingDC: null, typingKey: null, isOfferer: false, password: null,
@@ -254,10 +247,7 @@ setInterval(() => { if (activePeerId && isDestroyed(activePeerId)) goHome(); }, 
 function getContacts() { try { return JSON.parse(localStorage.getItem('p2p_contacts') || '[]'); } catch (e) { return []; } }
 function saveContacts(contacts) { localStorage.setItem('p2p_contacts', JSON.stringify(contacts)); }
 function addContact(peerId, name) { let contacts = getContacts(); if (!contacts.find(c => c.id === peerId)) { contacts.push({ id: peerId, name }); saveContacts(contacts); } renderContactList(); }
-function renameChat() {
-  if (!activePeerId) return; const contacts = getContacts(); const c = contacts.find(c => c.id === activePeerId);
-  if (!c) return; const newName = prompt('새 이름:', c.name); if (newName) { c.name = newName; saveContacts(contacts); document.getElementById('chatTitle').textContent = newName; renderContactList(); }
-}
+function renameChat() { if (!activePeerId) return; const contacts = getContacts(); const c = contacts.find(c => c.id === activePeerId); if (!c) return; const newName = prompt('새 이름:', c.name); if (newName) { c.name = newName; saveContacts(contacts); document.getElementById('chatTitle').textContent = newName; renderContactList(); } }
 function renderContactList() {
   const container = document.getElementById('contactList'); if (!container) return;
   const contacts = getContacts().filter(c => !isDestroyed(c.id));
@@ -290,7 +280,7 @@ function selectPeer(peerId) {
 }
 function goHome() { activePeerId = null; showView('simpleMode'); document.getElementById('messages').innerHTML = ''; document.getElementById('securityCard').style.display = 'none'; document.getElementById('passwordPrompt').style.display = 'block'; updateConn(false); renderContactList(); }
 
-// ─── 모달 및 연결 패널 ────────────────────────
+// ─── 모달 & 연결 패널 ─────────────────────────
 function showNameModal() { document.getElementById('nameModal').classList.remove('hidden'); document.getElementById('peerNameInput').focus(); }
 function closeNameModal() { document.getElementById('nameModal').classList.add('hidden'); }
 function confirmNewChat() {
@@ -399,12 +389,11 @@ function setupTypingDC(peerId) {
   };
 }
 
-// ─── 이중 래칫 핵심 로직 ──────────────────────
+// ─── 이중 래칫 핵심 로직 (수정 완료) ──────────
 async function startEcdhExchange(peerId) {
   const sess = sessions[peerId];
   try {
-    // 키 생성 시 반드시 deriveBits 포함 (deriveKey + deriveBits)
-    const keyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey', 'deriveBits']);
+    const keyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
     sess.ourEcdhPair = { privateKey: keyPair.privateKey, publicKey: keyPair.publicKey };
     const pubRaw = await crypto.subtle.exportKey('raw', sess.ourEcdhPair.publicKey);
     if (sess.isOfferer) {
@@ -420,7 +409,6 @@ async function handleEcdheMessage(peerId, data) {
   if (sess.handshakeDone) return;
   try {
     if (data.salt) sess.salt = new Uint8Array(b642buf(data.salt));
-    // 공개키 가져오기 (ECDH public key는 빈 usages)
     sess.peerEcdhPub = await crypto.subtle.importKey('raw', b642buf(data.pubKey), ECDH_ALG, true, []);
     if (sess.password && sess.ourEcdhPair && sess.peerEcdhPub && sess.salt) await deriveSessionKey(peerId);
   } catch (e) { addMsg(peerId, '키 교환 처리 실패', 'system'); }
@@ -436,34 +424,26 @@ async function submitPassword() {
 async function deriveSessionKey(peerId) {
   const sess = sessions[peerId];
   try {
-    // PBKDF2
     const km = await crypto.subtle.importKey('raw', str2buf(sess.password), 'PBKDF2', false, ['deriveKey']);
     sess.authKey = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: sess.salt, iterations: PBKDF2_ITERS, hash: 'SHA-512' }, km, { name: 'AES-GCM', length: AES_LEN }, true, ['encrypt', 'decrypt']);
-
-    // ECDH 비밀값 유도 (deriveBits 반드시 필요)
     const ecdhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: sess.peerEcdhPub }, sess.ourEcdhPair.privateKey, 521);
     const authRaw = await crypto.subtle.exportKey('raw', sess.authKey);
     const ikm = concatBufs(ecdhBits, str2buf(sess.password));
-
-    // HKDF로 루트 키 유도
-    const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveKey']);
+    // ** 수정: usage를 'deriveBits'로 변경 **
+    const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
     const rootKey = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-512', salt: authRaw, info: str2buf('root') }, hkdfKey, 256);
 
-    // 이중 래칫 상태 초기화
+    // 더블 래칫 초기화
     sess.rootKey = rootKey;
     sess.ourEphemeralKeyPair = sess.ourEcdhPair;
     sess.theirEphemeralPub = sess.peerEcdhPub;
     sess.sendChainKey = null; sess.recvChainKey = null;
     sess.sendMsgNum = 0; sess.recvMsgNum = 0;
-
-    // 타이핑 키
     const typingKeyRaw = rootKey.slice(0, 16);
     sess.typingKey = await crypto.subtle.importKey('raw', typingKeyRaw, { name: 'AES-GCM', length: TYPING_AES_LEN }, false, ['encrypt', 'decrypt']);
-
     sess.handshakeDone = true;
     sendConfirmation(peerId);
   } catch (e) {
-    console.error('deriveSessionKey error:', e);
     if (peerId === activePeerId) {
       document.getElementById('passwordError').textContent = '세션 키 생성 실패: ' + e.message;
       document.getElementById('passwordError').style.display = 'block';
@@ -476,10 +456,11 @@ async function dhRatchet(sess, ourNewPriv, theirPub) {
   const dhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: theirPub }, ourNewPriv, 521);
   const info = str2buf('double-ratchet');
   const ikm = concatBufs(dhBits, sess.rootKey);
-  const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveKey']);
+  // ** 수정: usage를 'deriveBits'로 변경 **
+  const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
   const okm = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-512', salt: new Uint8Array(32), info }, hkdfKey, 512);
   sess.rootKey = okm.slice(0, 32);
-  return okm.slice(32, 64); // 새 체인 키 (256비트)
+  return okm.slice(32, 64); // 새 체인 키
 }
 // 대칭키 래칫
 async function symmetricRatchet(chainKey) {
@@ -492,7 +473,7 @@ async function symmetricRatchet(chainKey) {
 // 전송 측 DH 래칫 필요 시 수행
 async function performSendingRatchetIfNeeded(sess) {
   if (!sess.sendChainKey) {
-    const newKeyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey', 'deriveBits']);
+    const newKeyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
     sess.ourEphemeralKeyPair = newKeyPair;
     const newChainKey = await dhRatchet(sess, newKeyPair.privateKey, sess.theirEphemeralPub);
     sess.sendChainKey = newChainKey;
@@ -530,7 +511,7 @@ async function decryptPayload(sess, d) {
   if (d.dhPub) await processReceivedRatchet(sess, d.dhPub);
   if (!sess.recvChainKey) throw new Error('수신 체인 없음');
   const { seq, iv, ct } = d;
-  if (seq < sess.recvMsgNum) return null;
+  if (seq < sess.recvMsgNum) return null; // 중복 무시
   while (sess.recvMsgNum < seq) {
     const { nextChainKey } = await symmetricRatchet(sess.recvChainKey);
     sess.recvChainKey = nextChainKey;
@@ -545,11 +526,11 @@ async function decryptPayload(sess, d) {
   return obj;
 }
 
-// 세션 확인
+// ─── 세션 확인 ────────────────────────────────
 async function sendConfirmation(peerId) {
   const sess = sessions[peerId];
   if (!sess.rootKey || !sess.dc || sess.dc.readyState !== 'open') return;
-  const newKeyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey', 'deriveBits']);
+  const newKeyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
   sess.ourEphemeralKeyPair = newKeyPair;
   const newChainKey = await dhRatchet(sess, newKeyPair.privateKey, sess.theirEphemeralPub);
   sess.sendChainKey = newChainKey;
@@ -689,9 +670,6 @@ function appendMessage(text, who, msgId) { const c = document.getElementById('me
 function addMsg(peerId, text, who, msgId) { if (peerId !== activePeerId || isDestroyed(peerId)) return; appendMessage(text, who, msgId); }
 function addEncryptedMessage(peerId, rawData) { if (peerId !== activePeerId || isDestroyed(peerId)) return; const c = document.getElementById('messages'), d = document.createElement('div'); d.className = 'msg system'; d.innerHTML = `<div class="encrypted-bubble blur-target"><strong>🔒 암호화된 메시지</strong><br>${escapeHtml(JSON.stringify(rawData, null, 2))}</div>`; c.appendChild(d); c.scrollTop = c.scrollHeight; applyBlurToSensitiveElements(); }
 function copyTextById(id) { const el = document.getElementById(id); const text = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : el.textContent; navigator.clipboard.writeText(text).then(() => {}).catch(() => { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} alert('링크가 복사되었습니다.'); }); }
-
-// ─── 알림 ────────────────────────────────────
-function notifyIfNeeded(content) { if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') { new Notification('P2P 비밀채팅', { body: content, icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#5b8df0"/></svg>') }); } }
 
 // ─── URL 해시 처리 ────────────────────────────
 async function checkHash() {
