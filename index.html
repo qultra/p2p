@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 완전판</title>
+  <title>P2P 비밀 메신저 – 완전판 (오류 수정)</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
   <meta name="referrer" content="no-referrer">
   <style>
@@ -188,7 +188,7 @@
 
 <script>
 // =====================================================================
-//  P2P 비밀 메신저 – 완전판 (버그 수정 & 모든 기능 통합)
+//  P2P 비밀 메신저 – 완전판 (deriveBits 528비트 수정)
 // =====================================================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -211,7 +211,7 @@ const DESTROY_PREFIX = 'p2p_destroyed_';
 
 if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-// ─── 유틸리티 함수 ────────────────────────────
+// ─── 유틸리티 ─────────────────────────────────
 const buf2hex = b => [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const str2buf = s => textEncoder.encode(s);
 const buf2b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
@@ -231,6 +231,7 @@ const AES_LEN = 256;
 const HMAC_HASH = 'SHA-512';
 const TYPING_AES_LEN = 128;
 const PADDING_MIN = 256, PADDING_MAX = 512;
+const DERIVED_BITS = 528; // 8의 배수 (66바이트)
 
 // ─── 세션 관리 ────────────────────────────────
 function getOrCreateSession(peerId) {
@@ -435,7 +436,8 @@ async function deriveSessionKey(peerId) {
   try {
     const km = await crypto.subtle.importKey('raw', str2buf(sess.password), 'PBKDF2', false, ['deriveKey']);
     sess.authKey = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: sess.salt, iterations: PBKDF2_ITERS, hash: 'SHA-512' }, km, { name: 'AES-GCM', length: AES_LEN }, true, ['encrypt', 'decrypt']);
-    const ecdhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: sess.peerEcdhPub }, sess.ourEcdhPair.privateKey, 521);
+    // 수정: 521 → 528
+    const ecdhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: sess.peerEcdhPub }, sess.ourEcdhPair.privateKey, DERIVED_BITS);
     const authRaw = await crypto.subtle.exportKey('raw', sess.authKey);
     const ikm = concatBufs(ecdhBits, str2buf(sess.password));
     const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveKey']);
@@ -461,7 +463,8 @@ async function deriveSessionKey(peerId) {
 
 // DH 래칫
 async function dhRatchet(sess, ourNewPriv, theirPub) {
-  const dhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: theirPub }, ourNewPriv, 521);
+  // 수정: 521 → 528
+  const dhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: theirPub }, ourNewPriv, DERIVED_BITS);
   const info = str2buf('double-ratchet');
   const ikm = concatBufs(dhBits, sess.rootKey);
   const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveKey']);
