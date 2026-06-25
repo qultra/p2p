@@ -1042,33 +1042,113 @@
             document.getElementById('remoteOfferSDP').value = ''; }
 
         async function createAnswerFromOffer() {
-            const t = document.getElementById('remoteOfferSDP').value.trim();
-            if (!t) return;
-            let offerStr = t;
-            let peerId;
-            if (t.startsWith('http')) { const u = new URL(t); const hp = new URLSearchParams(u.hash.substring(1)); if (!hp.has(
-                    'offer')) { alert('올바른 초대 링크가 아닙니다.'); return; }
-                offerStr = hp.get('offer');
-                peerId = hp.get('peer') || genUUID(); } else { peerId = genUUID(); }
-            const offer = decodeSDP(offerStr);
-            addContact(peerId, '상대방');
-            activePeerId = peerId;
-            const sess = getOrCreateSession(peerId);
-            sess.isOfferer = false;
-            initPC(peerId);
-            await sess.pc.setRemoteDescription(offer);
-            const ans = await sess.pc.createAnswer();
-            await sess.pc.setLocalDescription(ans);
-            await waitIce(sess.pc);
-            const answerB64 = encodeSDP(sess.pc.localDescription);
-            showView('chatScreen');
-            document.getElementById('chatTitle').textContent = '상대방';
-            document.getElementById('passwordPrompt').style.display = 'block';
-            document.getElementById('answerModalLink').textContent = location.origin + location.pathname + '#answer=' +
-                answerB64 + '&peer=' + peerId;
-            document.getElementById('answerModal').classList.remove('hidden');
-            renderContactList();
+    const offerInput = document.getElementById('remoteOfferSDP').value.trim();
+    if (!offerInput) {
+        alert('초대 링크(Offer)를 붙여넣어주세요.');
+        return;
+    }
+
+    // 진행 상태 표시 (버튼 비활성화 등 간단히)
+    const btn = document.querySelector('#answerPanel .btn.primary');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '처리 중...';
+    }
+
+    let offerStr;
+    let peerId;
+
+    try {
+        // URL에서 추출 or 원시 base64 처리
+        if (offerInput.startsWith('http')) {
+            const url = new URL(offerInput);
+            const hashParams = new URLSearchParams(url.hash.substring(1));
+            if (!hashParams.has('offer')) {
+                throw new Error('올바른 초대 링크가 아닙니다. (offer 파라미터 없음)');
+            }
+            offerStr = hashParams.get('offer');
+            peerId = hashParams.get('peer') || genUUID();
+        } else {
+            offerStr = offerInput;
+            peerId = genUUID();
         }
+
+        const offer = decodeSDP(offerStr);
+        addContact(peerId, '상대방');
+        activePeerId = peerId;
+
+        // 세션 직접 생성 (외부 함수 의존성 제거)
+        if (!sessions[peerId]) {
+            sessions[peerId] = {
+                pc: null, dc: null, typingDC: null, auxDC: null,
+                typingKey: null, isOfferer: false, password: null,
+                rootKey: null, sendChainKey: null, recvChainKey: null,
+                sendMsgNum: 0, recvMsgNum: 0,
+                ourEphemeralKeyPair: null, theirEphemeralPub: null,
+                salt: null, ourEcdhPair: null, peerEcdhPub: null,
+                handshakeDone: false, confirmed: false, isOnline: false,
+                receivedMessageIds: new Set(), pendingMessages: [],
+                fileReceive: null, typingTimer: null, reconnectAttempts: 0,
+                pendingConfirm: null, destroyRetry: 0
+            };
+        }
+        const sess = sessions[peerId];
+        sess.isOfferer = false;
+
+        initPC(peerId);
+        await sess.pc.setRemoteDescription(offer);
+        const answer = await sess.pc.createAnswer();
+        await sess.pc.setLocalDescription(answer);
+
+        // ICE 수집 완료까지 대기 (실패해도 넘어감)
+        try {
+            await waitIce(sess.pc);
+        } catch (iceErr) {
+            console.warn('ICE 수집 실패, 부분 링크로 진행:', iceErr);
+        }
+
+        // answer SDP를 base64로 인코딩
+        let answerB64 = null;
+        if (sess.pc.localDescription) {
+            answerB64 = encodeSDP(sess.pc.localDescription);
+        } else {
+            throw new Error('로컬 description을 생성하지 못했습니다.');
+        }
+
+        // 채팅 화면으로 전환 + 보안 설정 표시
+        showView('chatScreen');
+        document.getElementById('chatTitle').textContent = '상대방';
+        document.getElementById('passwordPrompt').style.display = 'block';
+
+        // Answer 모달에 링크 표시
+        const answerModalLink = document.getElementById('answerModalLink');
+        const answerModal = document.getElementById('answerModal');
+        if (answerModalLink && answerModal) {
+            answerModalLink.textContent = location.origin + location.pathname +
+                '#answer=' + answerB64 + '&peer=' + peerId;
+            answerModal.classList.remove('hidden');
+        }
+
+        renderContactList();
+
+    } catch (err) {
+        console.error('Answer 생성 오류:', err);
+        // 실패해도 Answer 모달을 띄워 오류 내용 표시
+        const answerModal = document.getElementById('answerModal');
+        const answerModalLink = document.getElementById('answerModalLink');
+        if (answerModal && answerModalLink) {
+            answerModalLink.textContent = '오류: ' + err.message;
+            answerModal.classList.remove('hidden');
+        } else {
+            alert('Answer 생성 실패: ' + err.message);
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '연결 시작';
+        }
+    }
+}
 
         function closeAnswerModal() { document.getElementById('answerModal').classList.add('hidden');
             document.getElementById('answerModalLink').textContent = ''; }
