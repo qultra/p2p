@@ -975,17 +975,32 @@
     addContact(peerId, name);
     activePeerId = peerId;
 
-    // ★ 중요: offerPanel을 최우선으로 보여줌 (어떤 오류가 나더라도 UI는 유지)
+    // offerPanel을 무조건 먼저 표시
     showView('offerPanel');
     const spinner = document.getElementById('offerSpinner');
     const linkDisplay = document.getElementById('offerLinkDisplay');
-    if (spinner) spinner.style.display = 'inline-block';
-    if (linkDisplay) linkDisplay.textContent = '연결 링크 생성 중... (ICE 수집 대기)';
+    spinner.style.display = 'inline-block';
+    linkDisplay.textContent = '연결 링크 생성 중... (ICE 수집 대기)';
 
-    // WebRTC 초기화 (오류가 발생해도 패널에 메시지 표시)
+    // 세션 객체 직접 생성 (getOrCreateSession 없이 독립적으로 동작)
+    if (!sessions[peerId]) {
+        sessions[peerId] = {
+            pc: null, dc: null, typingDC: null, auxDC: null,
+            typingKey: null, isOfferer: true, password: null,
+            rootKey: null, sendChainKey: null, recvChainKey: null,
+            sendMsgNum: 0, recvMsgNum: 0,
+            ourEphemeralKeyPair: null, theirEphemeralPub: null,
+            salt: null, ourEcdhPair: null, peerEcdhPub: null,
+            handshakeDone: false, confirmed: false, isOnline: false,
+            receivedMessageIds: new Set(), pendingMessages: [],
+            fileReceive: null, typingTimer: null, reconnectAttempts: 0,
+            pendingConfirm: null, destroyRetry: 0
+        };
+    }
+    const sess = sessions[peerId];
+    sess.isOfferer = true;
+
     try {
-        const sess = getOrCreateSession(peerId);
-        sess.isOfferer = true;
         initPC(peerId);
         sess.dc = sess.pc.createDataChannel('chat', { ordered: true });
         sess.typingDC = sess.pc.createDataChannel('typing', { ordered: false, maxRetransmits: 0 });
@@ -998,31 +1013,25 @@
             .then(o => sess.pc.setLocalDescription(o))
             .then(() => waitIce(sess.pc))
             .then(() => {
-                if (spinner) spinner.style.display = 'none';
+                spinner.style.display = 'none';
                 const offerB64 = encodeSDP(sess.pc.localDescription);
-                if (linkDisplay) linkDisplay.textContent =
-                    location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
+                linkDisplay.textContent = location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
             })
             .catch(err => {
-                // ICE 수집 실패 시에도 링크를 생성 (부분적으로라도)
-                if (spinner) spinner.style.display = 'none';
+                spinner.style.display = 'none';
                 console.warn('ICE 수집 실패:', err);
                 if (sess.pc && sess.pc.localDescription) {
                     const offerB64 = encodeSDP(sess.pc.localDescription);
-                    if (linkDisplay) {
-                        linkDisplay.textContent =
-                            location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
-                        linkDisplay.style.color = '#f97070';
-                    }
-                    alert('ICE 수집에 실패했지만 임시 링크를 생성했습니다.\n상대방이 직접 연결하지 못할 수 있습니다.');
+                    linkDisplay.textContent = location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
+                    linkDisplay.style.color = '#f97070';
+                    alert('ICE 수집에 실패했지만 임시 링크를 생성했습니다. 상대방이 직접 연결하지 못할 수 있습니다.');
                 } else {
-                    if (linkDisplay) linkDisplay.textContent = '링크 생성 실패. 페이지를 새로고침 후 다시 시도해주세요.';
+                    linkDisplay.textContent = '링크 생성 실패. 새로고침 후 다시 시도해주세요.';
                 }
             });
     } catch (e) {
-        // initPC 또는 데이터 채널 생성 오류 처리
-        if (spinner) spinner.style.display = 'none';
-        if (linkDisplay) linkDisplay.textContent = '초기화 오류: ' + e.message;
+        spinner.style.display = 'none';
+        linkDisplay.textContent = '초기화 오류: ' + e.message;
         console.error('confirmNewChat 오류:', e);
     }
 
