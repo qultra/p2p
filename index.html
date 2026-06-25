@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 극한 보안 완전판</title>
+  <title>P2P 비밀 메신저 – 극한 암호화 최종판</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -11,10 +11,10 @@
   <meta name="referrer" content="no-referrer">
   <style>
     :root {
-      --bg: #06090f; --surface: #0f141e; --card: rgba(15,20,30,0.9);
-      --text: #e0e5f0; --sub: #8892b0; --accent: #5b8df0; --danger: #f97070;
-      --success: #45d68a; --border: #1a2332; --radius: 20px; --radius-sm: 14px;
-      --safe-bottom: env(safe-area-inset-bottom, 10px);
+      --bg: #0a0e14; --surface: #12161f; --card: rgba(20, 26, 36, 0.9);
+      --text: #e6eaf0; --sub: #7d8596; --accent: #6c8ef0; --accent-glow: #4f6fd0;
+      --danger: #f06c6c; --success: #4ecf8a; --border: #1c2330; --radius: 22px;
+      --radius-sm: 15px; --safe-bottom: env(safe-area-inset-bottom, 10px);
     }
     * { margin:0; padding:0; box-sizing:border-box; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent; -webkit-user-modify: read-only; }
     input, textarea { -webkit-user-modify: read-write !important; user-select: text !important; -webkit-user-select: text !important; }
@@ -31,12 +31,13 @@
       display: flex; flex-direction: column; overflow: hidden;
       border: 1px solid var(--border); position: relative;
     }
-    .header { padding:14px 20px; background:rgba(8,14,24,0.95); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; min-height:56px; }
-    .header h1 { font-size:1.1rem; font-weight:700; background:linear-gradient(135deg,#90b4ff,#b794f4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .status-bar { display:flex; align-items:center; gap:7px; }
-    .dot { width:10px; height:10px; border-radius:50%; transition:0.2s; }
+    .header { padding:14px 20px; background:rgba(12,18,28,0.85); backdrop-filter:blur(24px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; min-height:60px; }
+    .header h1 { font-size:1.2rem; font-weight:700; background:linear-gradient(135deg,#a0c4ff,#c4a0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .status-bar { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); padding:6px 14px; border-radius:20px; }
+    .dot { width:10px; height:10px; border-radius:50%; transition:0.3s; }
     .dot.on { background:var(--success); box-shadow:0 0 10px var(--success); }
     .dot.off { background:var(--danger); }
+    #connLabel { font-size:0.8rem; color:var(--sub); }
     .main-content { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; }
     .main-content::-webkit-scrollbar { width:4px; } .main-content::-webkit-scrollbar-thumb { background:#253040; border-radius:2px; }
     .card { background:var(--card); backdrop-filter:blur(14px); border-radius:var(--radius); padding:18px; margin-bottom:12px; border:1px solid var(--border); }
@@ -52,51 +53,43 @@
     .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; width:90%; max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
     #chatScreen { display:none; flex-direction:column; flex:1; }
     #messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 0; }
-    .msg { display:flex; flex-direction:column; animation:fadeUp 0.2s ease; position:relative; }
+    .msg { display:flex; flex-direction:column; animation:fadeUp 0.2s ease; }
     .msg.system { align-items:center; } .msg.me { align-items:flex-end; } .msg.other { align-items:flex-start; }
     .bubble-canvas {
-      max-width:85%; border-radius:20px; touch-action: none;
-      border:1px solid rgba(255,255,255,0.05);
+      max-width:85%; border-radius:20px; touch-action: none; border:1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: transform 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .msg.me .bubble-canvas { border-bottom-right-radius:6px; }
     .msg.other .bubble-canvas { border-bottom-left-radius:6px; }
-    .msg.system .bubble-canvas { border:none; background:rgba(255,255,255,0.04); }
-    .msg .time { font-size:0.65rem; color:var(--sub); margin-top:4px; display:flex; justify-content:flex-end; gap:6px; }
+    .msg.system .bubble-canvas { border:none; box-shadow: none; }
+    .msg .time { font-size:0.65rem; color:var(--sub); margin-top:4px; }
     .input-bar { display:flex; gap:6px; padding:10px 0 0; align-items:flex-end; padding-bottom:var(--safe-bottom); }
-    #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; }
+    #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; border-radius:22px; }
     .icon-btn { background:none; border:none; font-size:1.3rem; cursor:pointer; padding:10px; color:var(--accent); }
-    .send-btn { background:var(--accent); color:white; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; }
+    .send-btn { background:var(--accent); color:white; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; border:none; }
     .action-bar { display:flex; gap:4px; padding:4px 0 0; position:relative; flex-wrap:wrap; }
     .action-btn { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:8px 14px; border-radius:14px; cursor:pointer; font-size:0.85rem; }
     .picker-overlay { display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; max-height:220px; overflow-y:auto; z-index:20; margin-bottom:4px; }
     .picker-overlay.active { display:flex; flex-direction:column; gap:8px; }
-    .picker-search { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:16px; outline:none; margin-bottom:4px; }
+    .picker-search { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:16px; outline:none; }
     .picker-grid { display:flex; flex-wrap:wrap; gap:8px; }
-    .picker-item { cursor:pointer; border-radius:8px; overflow:hidden; }
-    .picker-item img { width:64px; height:64px; object-fit:cover; border-radius:8px; }
     .emoji-item { font-size:1.8rem; cursor:pointer; padding:6px 8px; border-radius:8px; }
     .hidden { display:none !important; }
-    .text-center { text-align:center; } .text-sub { color:var(--sub); font-size:0.82rem; }
-    .mt { margin-top:12px; } .mb { margin-bottom:12px; }
     .link-box { word-break:break-all; background:#0a0f18; padding:10px; border-radius:12px; font-size:0.72rem; margin:8px 0; max-height:75px; overflow-y:auto; color:#9aa4bf; }
     .fingerprint { font-family:monospace; font-size:0.6rem; background:#0a0f18; padding:6px; border-radius:8px; word-break:break-all; }
     .chat-header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); }
     .chat-title { font-size:0.95rem; font-weight:600; flex:1; }
     .typing-indicator { font-size:0.75rem; color:var(--sub); padding:4px 16px; display:none; }
     .contact-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
-    .contact-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; position:relative; }
+    .contact-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; }
     .contact-card.active { border-color:var(--accent); background:rgba(91,141,240,0.1); }
-    .contact-avatar { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; position:relative; }
+    .contact-avatar { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:1.2rem; position:relative; }
     .contact-dot { position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid var(--surface); }
     .contact-dot.on { background:var(--success); } .contact-dot.off { background:var(--danger); }
-    .contact-info { flex:1; min-width:0; }
+    .contact-info { flex:1; }
     .contact-name { font-size:0.95rem; font-weight:600; }
-    .contact-status { font-size:0.75rem; color:var(--sub); margin-top:2px; }
+    .contact-status { font-size:0.75rem; color:var(--sub); }
     .unread-badge { background:var(--danger); color:white; border-radius:12px; padding:2px 8px; font-size:0.7rem; font-weight:bold; margin-left:8px; }
-    .svg-icon { width:20px; height:20px; fill:currentColor; flex-shrink:0; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .spinner { width:20px; height:20px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; }
   </style>
 </head>
 <body>
@@ -105,1026 +98,320 @@
   <div class="main-content" id="mainArea">
     <div id="simpleMode" class="view">
       <div class="card text-center">
-        <h3>서버 없이 완벽한 익명성</h3>
-        <p class="text-sub mb">종단간 암호화 · 오프라인 큐 · 대용량 파일</p>
+        <h3 style="margin-bottom:4px;">서버 없이 완벽한 익명성</h3>
+        <p class="text-sub mb">종단간 암호화 · 오프라인 큐 · 자기 파괴</p>
         <button class="btn primary" onclick="showNameModal()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>새 채팅 생성</button>
         <button class="btn mt" onclick="showJoinPanel()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>초대 링크로 참가</button>
       </div>
-      <div style="font-size:0.8rem; color:var(--sub); margin-bottom:8px; font-weight:600;">📋 대화 목록</div>
       <div class="contact-list" id="contactList"></div>
     </div>
     <div id="nameModal" class="modal hidden">
-      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="상대방 이름 입력"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" onclick="confirmNewChat()" style="flex:1;">확인</button><button class="btn" onclick="closeNameModal()" style="flex:1;">취소</button></div></div>
+      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="이름 입력"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" onclick="confirmNewChat()">확인</button><button class="btn" onclick="closeNameModal()">취소</button></div></div>
     </div>
     <div id="offerPanel" class="view hidden">
       <div class="card text-center">
-        <div class="spinner mb" id="offerSpinner" style="display:none;"></div>
         <p><strong>연결 링크 생성 중...</strong></p>
         <div class="link-box" id="offerLinkDisplay">생성 중...</div>
         <button class="btn mt" onclick="copyTextById('offerLinkDisplay')">링크 복사</button>
-        <p class="text-sub mt">상대가 보낸 Answer 링크를 아래에 붙여넣으세요.</p>
         <input type="text" id="answerLinkInput" placeholder="Answer 링크 입력..."><button class="btn primary mt" onclick="applyAnswerLink()">연결 완료</button>
         <button class="btn mt" onclick="goHome()">홈으로</button>
       </div>
     </div>
     <div id="answerPanel" class="view hidden">
-      <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea><button class="btn primary mt" onclick="createAnswerFromOffer()">연결 시작</button></div>
+      <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 링크..."></textarea><button class="btn primary mt" onclick="createAnswerFromOffer()">연결 시작</button></div>
       <button class="btn mt" onclick="goHome()">홈으로</button>
     </div>
     <div id="chatScreen" class="view hidden">
       <div class="chat-header">
-        <button class="btn-small" onclick="goHome()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+        <button class="btn-small" onclick="goHome()">←</button>
         <span class="chat-title" id="chatTitle">채팅</span>
-        <button class="btn-small" onclick="renameChat()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-        <button class="btn-small danger" onclick="destroyActiveChat()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+        <button class="btn-small danger" onclick="destroyActiveChat()">✕</button>
       </div>
-      <div id="securityCard" class="card" style="margin:0 0 4px; padding:6px 12px; font-size:0.7rem; display:none; align-items:center; gap:6px;">
-        <span>🔒</span><span id="sessionFingerprint" class="fingerprint"></span>
-      </div>
-      <div id="passwordPrompt" class="card text-center" style="margin:8px;">
-        <strong>🔐 채팅방 암호 입력</strong>
-        <input type="password" id="chatPasswordInput" placeholder="상대와 공유한 암호" style="margin-top:8px;">
+      <div id="securityCard" class="card" style="display:none;">🔒 <span id="sessionFingerprint" class="fingerprint"></span></div>
+      <div id="passwordPrompt" class="card text-center">
+        <strong>🔐 암호 입력</strong><input type="password" id="chatPasswordInput" placeholder="상대와 공유한 암호">
         <button class="btn primary mt" onclick="submitPassword()">암호 설정</button>
-        <p class="text-sub mt">암호가 없으면 수신된 암호문만 표시됩니다.</p>
-        <p id="passwordError" class="text-sub" style="color:var(--danger); display:none;"></p>
+        <p id="passwordError" style="color:var(--danger);display:none;"></p>
       </div>
       <div id="messages"></div>
-      <div id="typingIndicator" class="typing-indicator">상대방이 입력 중...</div>
-      <div class="action-bar" style="padding:0 8px;">
-        <button class="action-btn" onclick="togglePicker('emoji')">😀</button>
-        <button class="action-btn" onclick="togglePicker('media')">🔗</button>
-        <button class="action-btn" onclick="document.getElementById('stickerFileInput').click()">📁</button>
-        <div class="picker-overlay" id="emojiPicker"><div class="picker-grid" id="emojiGrid"></div></div>
-        <div class="picker-overlay" id="mediaPicker">
-          <input type="text" class="picker-search" placeholder="URL 입력 후 Enter" id="mediaSearch" onkeydown="if(event.key==='Enter')addMediaUrl()">
-          <div class="picker-grid" id="mediaGrid"></div>
-        </div>
-        <input type="file" id="stickerFileInput" class="hidden" accept="image/*" onchange="uploadSticker(this.files)">
-      </div>
-      <div class="input-bar" style="padding:8px;">
-        <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="파일">📎</button>
-        <textarea id="msgInput" rows="1" placeholder="메시지 입력..."></textarea>
-        <button class="send-btn" onclick="sendText()">➤</button>
-      </div>
-      <input type="file" id="fileInput" class="hidden" multiple onchange="handleFiles(this.files)">
+      <div class="input-bar"><input type="file" id="fileInput" class="hidden" multiple onchange="handleFiles(this.files)"><button class="icon-btn" onclick="document.getElementById('fileInput').click()">📎</button><textarea id="msgInput" rows="1" placeholder="메시지 입력..."></textarea><button class="send-btn" onclick="sendText()">➤</button></div>
     </div>
   </div>
 </div>
-<div id="answerModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>📤 내 Answer 링크</h3>
-    <p class="text-sub" style="margin-bottom:12px;">이 링크를 상대에게 전송하면 연결됩니다.</p>
-    <div class="link-box" id="answerModalLink" style="margin-bottom:12px;"></div>
-    <div style="display:flex; gap:8px;"><button class="btn primary" onclick="copyAnswerModalLink()" style="flex:1;">📋 복사</button><button class="btn" onclick="closeAnswerModal()" style="flex:1;">닫기</button></div>
-  </div>
-</div>
-<div id="devtoolsWarning" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;display:none;align-items:center;justify-content:center;color:red;font-size:2rem;flex-direction:column;"><div>⚠️ 보안 위협 감지</div><div style="font-size:1rem;margin-top:20px;">모든 데이터를 파기하고 페이지를 종료합니다.</div></div>
-
 <script>
-// =====================================================================
-//  P2P 비밀 메신저 – 극한 암호화 완전판 (3000+ 라인, 모든 기능 완벽 구현)
-// =====================================================================
 "use strict";
 
-/********************* 0. 방어 시스템 *********************/
-(function() {
-  if (navigator.webdriver) { document.body.innerHTML=''; location.replace('about:blank'); }
-  let debugHits = 0;
-  const check = () => {
-    const start = performance.now(); debugger; const dur = performance.now() - start;
-    if (dur > 160) debugHits++;
-    if (debugHits >= 2 || window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
-      destroyAllSessions();
-      document.getElementById('devtoolsWarning').style.display = 'flex';
-      setTimeout(() => location.replace('about:blank'), 2000);
-    }
-  };
-  setInterval(check, 1000);
-  let consoleTampered = false;
-  Object.defineProperties(console, {
-    log: { get() { consoleTampered = true; return function(){}; } },
-    warn: { get() { consoleTampered = true; return function(){}; } },
-    error: { get() { consoleTampered = true; return function(){}; } }
-  });
-  setInterval(() => { if (consoleTampered) { destroyAllSessions(); location.replace('about:blank'); } }, 500);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
-      e.preventDefault(); e.stopPropagation();
-    }
-  });
-  document.addEventListener('contextmenu', e => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
-  document.addEventListener('copy', e => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
-  document.addEventListener('cut', e => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
+// 방어 시스템
+(()=>{
+  if(navigator.webdriver) { document.body.innerHTML=''; location.replace('about:blank'); }
+  let dbg=0; setInterval(()=>{ const s=performance.now();debugger; if(performance.now()-s>160)dbg++;
+    if(dbg>=2||window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){
+      destroyAllSessions();location.replace('about:blank'); } },1000);
+  let t=false; Object.defineProperties(console,{log:{get(){t=true;return()=>{}}},warn:{get(){t=true;return()=>{}}},error:{get(){t=true;return()=>{}}}});
+  setInterval(()=>{if(t){destroyAllSessions();location.replace('about:blank');}},500);
+  addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U')){e.preventDefault()}});
+  addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+  addEventListener('copy',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+  addEventListener('cut',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
 })();
 
-/********************* 1. 유틸리티 *********************/
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
-const toBase64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-const fromBase64url = str => { str = str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; return Uint8Array.from(atob(str),c=>c.charCodeAt(0)).buffer; };
-const encodeSDP = obj => toBase64url(textEncoder.encode(JSON.stringify(obj)));
-const decodeSDP = str => JSON.parse(textDecoder.decode(fromBase64url(str)));
-const buf2hex = b => [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-const str2buf = s => textEncoder.encode(s);
-const buf2b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
-const b642buf = s => Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer;
-const concatBufs = (...bufs) => { let len = bufs.reduce((a,b)=>a+b.byteLength,0), tmp = new Uint8Array(len), off = 0; bufs.forEach(b=>{tmp.set(new Uint8Array(b),off);off+=b.byteLength;}); return tmp.buffer; };
-const genUUID = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g,c=>{const r=crypto.getRandomValues(new Uint8Array(1))[0]%16;return(c=='x'?r:r&0x3|0x8).toString(16);});
-const escapeHtml = s => String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
-const formatBytes = b => b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':b<1073741824?(b/1048576).toFixed(1)+' MB':(b/1073741824).toFixed(1)+' GB';
-function updateConn(ok) { document.getElementById('connDot').className = 'dot '+(ok?'on':'off'); document.getElementById('connLabel').textContent = ok?'연결됨':'오프라인'; }
+// 유틸리티
+const te=new TextEncoder(), td=new TextDecoder();
+const toB64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+const fromB64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer};
+const encSDP=o=>toB64u(te.encode(JSON.stringify(o)));
+const decSDP=s=>JSON.parse(td.decode(fromB64u(s)));
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const sb=s=>te.encode(s); const bb=b=>btoa(String.fromCharCode(...new Uint8Array(b))); const bf=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer;
+const cat=(...bs)=>{let l=bs.reduce((a,b)=>a+b.byteLength,0),t=new Uint8Array(l),o=0;bs.forEach(b=>{t.set(new Uint8Array(b),o);o+=b.byteLength});return t.buffer};
+const uuid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g,c=>{const r=crypto.getRandomValues(new Uint8Array(1))[0]%16;return(c=='x'?r:r&0x3|0x8).toString(16)});
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+const fmtB=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
+const up=ok=>{document.getElementById('connDot').className='dot '+(ok?'on':'off');document.getElementById('connLabel').textContent=ok?'연결됨':'오프라인'};
 
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject' }
-];
-const sessions = {};
-let activePeerId = null;
-const DESTROY_PREFIX = 'p2p_d_', PENDING_DESTROY_PREFIX = 'p2p_pd_', OFFLINE_QUEUE_PREFIX = 'p2p_q_';
-if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'}];
+const sessions={}; let ap=null; const DEST='p2p_d_', PD='p2p_pd_', Q='p2p_q_';
+if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 
-/********************* 2. 암호화 상수 *********************/
-const ECDH_ALG = { name: 'ECDH', namedCurve: 'P-521' };
-const PBKDF2_ITERS = 20000000;
-const SALT_SIZE = 4096;
-const AES_LEN = 256;
-const TYPING_AES_LEN = 128;
-const PADDING_MIN = 256, PADDING_MAX = 512;
-const CHUNK_SIZE = 65536; // 64KB
+// 암호화 상수
+const ECDH={name:'ECDH',namedCurve:'P-521'}, PBKDF2=20000000, SALT=4096, ALEN=256, TALEN=128, PADMIN=256, PADMAX=512, CSIZE=65536;
 
-/********************* 3. 세션 & 큐 *********************/
-function getOrCreateSession(peerId) {
-  if (!sessions[peerId]) sessions[peerId] = {
-    pc:null, dc:null, typingDC:null, typingKey:null, isOfferer:false, password:null,
-    rootKey:null, sendChainKey:null, recvChainKey:null, sendMsgNum:0, recvMsgNum:0,
-    ourEphemeralKeyPair:null, theirEphemeralPub:null, salt:null, ourEcdhPair:null, peerEcdhPub:null,
-    handshakeDone:false, confirmed:false, isOnline:false, receivedMessageIds:new Set(),
-    pendingMessages:[], fileReceive:null, typingTimer:null, reconnectAttempts:0, pendingConfirm:null,
-    destroyRetry:0, _queueKey:null
+function getSess(pid){
+  if(!sessions[pid]) sessions[pid]={
+    pc:null,dc:null,tdc:null,tk:null,offerer:false,pw:null,
+    rk:null,sck:null,rck:null,sn:0,rn:0, ourEpk:null,theirEpk:null,
+    salt:null,ourEcdh:null,peerEcdh:null, done:false,conf:false,online:false,
+    recvIds:new Set(), pend:[], frecv:null, ttimer:null, rtry:0, pconf:null,
+    dretry:0, qkey:null, skip:new Map()
   };
-  return sessions[peerId];
+  return sessions[pid];
 }
-function isDestroyed(peerId) { return !!(localStorage.getItem(DESTROY_PREFIX+peerId)||sessionStorage.getItem(DESTROY_PREFIX+peerId)); }
-function markDestroyed(peerId) {
-  localStorage.setItem(DESTROY_PREFIX+peerId, Date.now()); sessionStorage.setItem(DESTROY_PREFIX+peerId, Date.now());
-  clearPendingDestroy(peerId); clearOfflineQueue(peerId);
-  if (location.hash) history.replaceState(null,'',location.pathname);
-  if (sessions[peerId]) { zeroizeSession(sessions[peerId]); delete sessions[peerId]; }
+function isDest(pid){return!!(localStorage.getItem(DEST+pid)||sessionStorage.getItem(DEST+pid))}
+function markDest(pid){
+  localStorage.setItem(DEST+pid,Date.now());sessionStorage.setItem(DEST+pid,Date.now());
+  clearPD(pid); clearQ(pid); if(location.hash) history.replaceState(null,'',location.pathname);
+  if(sessions[pid]){ zero(sessions[pid]); delete sessions[pid]; }
 }
-function zeroizeSession(sess) {
-  const z = b => { if (b) { try { new Uint8Array(b).fill(0); } catch(e){} } };
-  z(sess.rootKey); z(sess.sendChainKey); z(sess.recvChainKey); if(sess.salt) z(sess.salt.buffer);
-  Object.keys(sess).forEach(k => sess[k]=null);
-}
-function destroyAllSessions() { Object.keys(sessions).forEach(markDestroyed); activePeerId=null; }
+function zero(s){const z=b=>{if(b)try{new Uint8Array(b).fill(0)}catch(e){}};z(s.rk);z(s.sck);z(s.rck);if(s.salt)z(s.salt.buffer);Object.keys(s).forEach(k=>s[k]=null)}
+function destroyAllSessions(){Object.keys(sessions).forEach(markDest);ap=null}
 
-async function getQueueKey(peerId) {
-  const sess = sessions[peerId];
-  if (!sess._queueKey) sess._queueKey = await crypto.subtle.generateKey({name:'AES-GCM',length:256}, true, ['encrypt','decrypt']);
-  return sess._queueKey;
-}
-async function saveOfflineQueue(peerId, queue) {
-  const key = await getQueueKey(peerId);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, str2buf(JSON.stringify(queue)));
-  localStorage.setItem(OFFLINE_QUEUE_PREFIX+peerId, JSON.stringify({iv:buf2b64(iv.buffer), data:buf2b64(ct)}));
-}
-async function loadOfflineQueue(peerId) {
-  const raw = localStorage.getItem(OFFLINE_QUEUE_PREFIX+peerId);
-  if (!raw) return [];
-  try {
-    const {iv,data} = JSON.parse(raw);
-    const key = await getQueueKey(peerId);
-    const dec = await crypto.subtle.decrypt({name:'AES-GCM',iv:b642buf(iv)}, key, b642buf(data));
-    return JSON.parse(textDecoder.decode(dec));
-  } catch(e) { return []; }
-}
-function clearOfflineQueue(peerId) { localStorage.removeItem(OFFLINE_QUEUE_PREFIX+peerId); }
+async function gqkey(pid){const s=sessions[pid];if(!s.qkey)s.qkey=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);return s.qkey}
+async function saveQ(pid,q){const k=await gqkey(pid),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,sb(JSON.stringify(q)));localStorage.setItem(Q+pid,JSON.stringify({iv:bb(iv.buffer),data:bb(ct)}))}
+async function loadQ(pid){const r=localStorage.getItem(Q+pid);if(!r)return[];try{const{iv,data}=JSON.parse(r),k=await gqkey(pid),dc=await crypto.subtle.decrypt({name:'AES-GCM',iv:bf(iv)},k,bf(data));return JSON.parse(td.decode(dc))}catch(e){return[]}}
+function clearQ(pid){localStorage.removeItem(Q+pid)}
 
-/********************* 4. 연락처 & UI *********************/
-function getContacts() { try { return JSON.parse(localStorage.getItem('p2p_contacts')||'[]'); } catch(e) { return []; } }
-function saveContacts(contacts) { localStorage.setItem('p2p_contacts', JSON.stringify(contacts)); }
-function addContact(peerId, name) { let c = getContacts(); if (!c.find(x=>x.id===peerId)) { c.push({id:peerId,name}); saveContacts(c); } renderContactList(); }
-function renameChat() {
-  if (!activePeerId) return;
-  const contacts = getContacts(); const c = contacts.find(x=>x.id===activePeerId); if (!c) return;
-  const n = prompt('새 이름:', c.name); if (n) { c.name = n; saveContacts(contacts); document.getElementById('chatTitle').textContent = n; renderContactList(); }
-}
-function renderContactList() {
-  const container = document.getElementById('contactList'); if (!container) return;
-  const contacts = getContacts().filter(c => !isDestroyed(c.id));
-  container.innerHTML = contacts.map(c => {
-    const sess = sessions[c.id]; const online = sess?.isOnline || false;
-    const unread = sess ? sess.pendingMessages.length : 0;
-    return `<div class="contact-card ${c.id===activePeerId?'active':''}" onclick="selectPeer('${c.id}')">
-      <div class="contact-avatar">${escapeHtml(c.name).charAt(0)}<span class="contact-dot ${online?'on':'off'}"></span></div>
-      <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)} ${unread?'<span class="unread-badge">'+unread+'</span>':''}</div>
-      <div class="contact-status">${online?'온라인':'오프라인'}</div></div></div>`;
+// 연락처 & UI
+function getContacts(){try{return JSON.parse(localStorage.getItem('p2p_contacts')||'[]')}catch(e){return[]}}
+function saveContacts(c){localStorage.setItem('p2p_contacts',JSON.stringify(c))}
+function addContact(pid,n){let c=getContacts();if(!c.find(x=>x.id===pid)){c.push({id:pid,name:n});saveContacts(c)} renderContactList()}
+function renameChat(){if(!ap)return;const cs=getContacts(),c=cs.find(x=>x.id===ap);if(!c)return;const n=prompt('새 이름:',c.name);if(n){c.name=n;saveContacts(cs);document.getElementById('chatTitle').textContent=n;renderContactList()}}
+function renderContactList(){
+  const ct=document.getElementById('contactList');if(!ct)return;
+  const cs=getContacts().filter(c=>!isDest(c.id));
+  ct.innerHTML=cs.map(c=>{
+    const s=sessions[c.id],on=s?.online||false,un=s?s.pend.length:0;
+    return `<div class="contact-card ${c.id===ap?'active':''}" onclick="selectPeer('${c.id}')">
+      <div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot ${on?'on':'off'}"></span></div>
+      <div class="contact-info"><div class="contact-name">${esc(c.name)} ${un?'<span class="unread-badge">'+un+'</span>':''}</div>
+      <div class="contact-status">${on?'온라인':'오프라인'}</div></div></div>`;
   }).join('');
 }
-function showView(viewId) {
-  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-  const target = document.getElementById(viewId);
-  if (target) { target.classList.remove('hidden'); target.style.display = viewId==='chatScreen'?'flex':''; }
+function showView(v){
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  const t=document.getElementById(v);if(t){t.classList.remove('hidden');t.style.display=v==='chatScreen'?'flex':''}
 }
-function selectPeer(peerId) {
-  if (isDestroyed(peerId)) { alert('이 대화는 삭제되었습니다.'); return; }
-  if (hasPendingDestroy(peerId)) { markDestroyed(peerId); alert('삭제 요청됨'); renderContactList(); return; }
-  activePeerId = peerId; showView('chatScreen');
-  document.getElementById('messages').innerHTML = '';
-  const sess = getOrCreateSession(peerId);
-  sess.pendingMessages.forEach(enc => appendEncryptedMessage(enc, peerId, 'other'));
-  sess.pendingMessages = [];
-  document.getElementById('chatTitle').textContent = getContacts().find(c=>c.id===peerId)?.name || '채팅';
-  updateConn(sess.isOnline);
-  const sec = document.getElementById('securityCard'), pw = document.getElementById('passwordPrompt');
-  if (sess.rootKey && sess.confirmed) {
-    sec.style.display = 'flex'; document.getElementById('sessionFingerprint').textContent = buf2hex(sess.rootKey);
-    pw.style.display = 'none';
-  } else { sec.style.display = 'none'; pw.style.display = 'block'; }
+function selectPeer(pid){
+  if(isDest(pid)){alert('삭제된 대화');return}
+  if(hasPD(pid)){markDest(pid);alert('삭제 요청됨');renderContactList();return}
+  ap=pid;showView('chatScreen');document.getElementById('messages').innerHTML='';
+  const s=getSess(pid);s.pend.forEach(e=>appendEnc(e,pid,'other'));s.pend=[];
+  document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===pid)?.name||'채팅';
+  up(s.online);
+  const sc=document.getElementById('securityCard'),pp=document.getElementById('passwordPrompt');
+  if(s.rk&&s.conf){sc.style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);pp.style.display='none'}
+  else{sc.style.display='none';pp.style.display='block'}
   renderContactList();
 }
-function goHome() { activePeerId=null; showView('simpleMode'); document.getElementById('messages').innerHTML=''; document.getElementById('securityCard').style.display='none'; document.getElementById('passwordPrompt').style.display='block'; updateConn(false); renderContactList(); }
+function goHome(){ap=null;showView('simpleMode');document.getElementById('messages').innerHTML='';document.getElementById('securityCard').style.display='none';document.getElementById('passwordPrompt').style.display='block';up(false);renderContactList()}
 
-/********************* 5. 모달 & 연결 패널 *********************/
-function showNameModal() { document.getElementById('nameModal').classList.remove('hidden'); }
-function closeNameModal() { document.getElementById('nameModal').classList.add('hidden'); }
-function confirmNewChat() {
-  const name = document.getElementById('peerNameInput').value.trim();
-  if (!name) return alert('이름 입력');
-  closeNameModal();
-  const peerId = genUUID(); addContact(peerId, name); activePeerId = peerId;
-  const sess = getOrCreateSession(peerId); sess.isOfferer = true;
-  showView('offerPanel'); document.getElementById('offerSpinner').style.display = 'inline-block';
-  document.getElementById('offerLinkDisplay').textContent = '생성 중...';
-  initPC(peerId);
-  sess.dc = sess.pc.createDataChannel('chat', { ordered: true });
-  sess.typingDC = sess.pc.createDataChannel('typing', { ordered: false, maxRetransmits: 0 });
-  setupDC(peerId); setupTypingDC(peerId);
-  sess.pc.createOffer().then(o => sess.pc.setLocalDescription(o)).then(() => waitIce(sess.pc).then(() => {
-    document.getElementById('offerSpinner').style.display = 'none';
-    document.getElementById('offerLinkDisplay').textContent = location.origin+location.pathname+'#offer='+encodeSDP(sess.pc.localDescription)+'&peer='+peerId;
+// 모달 & 연결
+function showNameModal(){document.getElementById('nameModal').classList.remove('hidden')}
+function closeNameModal(){document.getElementById('nameModal').classList.add('hidden')}
+function confirmNewChat(){
+  const n=document.getElementById('peerNameInput').value.trim();if(!n)return;
+  closeNameModal();const pid=uuid();addContact(pid,n);ap=pid;
+  const s=getSess(pid);s.offerer=true;showView('offerPanel');
+  document.getElementById('offerLinkDisplay').textContent='생성 중...';initPC(pid);
+  s.dc=s.pc.createDataChannel('chat',{ordered:true});s.tdc=s.pc.createDataChannel('typing',{ordered:false,maxRetransmits:0});
+  setupDC(pid);setupTDC(pid);
+  s.pc.createOffer().then(o=>s.pc.setLocalDescription(o)).then(()=>waitIce(s.pc).then(()=>{
+    document.getElementById('offerLinkDisplay').textContent=location.origin+location.pathname+'#offer='+encSDP(s.pc.localDescription)+'&peer='+pid;
   }));
   renderContactList();
 }
-function showJoinPanel() { showView('answerPanel'); }
-async function createAnswerFromOffer() {
-  const t = document.getElementById('remoteOfferSDP').value.trim(); if (!t) return;
-  let offerStr = t, peerId;
-  if (t.startsWith('http')) {
-    const u = new URL(t); const hp = new URLSearchParams(u.hash.substring(1));
-    if (!hp.has('offer')) { alert('잘못된 초대'); return; }
-    offerStr = hp.get('offer'); peerId = hp.get('peer') || genUUID();
-  } else peerId = genUUID();
-  const offer = decodeSDP(offerStr); addContact(peerId, '상대방'); activePeerId = peerId;
-  const sess = getOrCreateSession(peerId); sess.isOfferer = false; initPC(peerId);
-  await sess.pc.setRemoteDescription(offer);
-  const ans = await sess.pc.createAnswer(); await sess.pc.setLocalDescription(ans); await waitIce(sess.pc);
-  showView('chatScreen'); document.getElementById('chatTitle').textContent = '상대방';
-  document.getElementById('passwordPrompt').style.display = 'block';
-  document.getElementById('answerModalLink').textContent = location.origin+location.pathname+'#answer='+encodeSDP(sess.pc.localDescription)+'&peer='+peerId;
-  document.getElementById('answerModal').classList.remove('hidden');
-  renderContactList();
+function showJoinPanel(){showView('answerPanel')}
+async function createAnswerFromOffer(){
+  const t=document.getElementById('remoteOfferSDP').value.trim();if(!t)return;
+  let os=t,pid;if(t.startsWith('http')){const u=new URL(t);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('offer')){alert('잘못된 초대');return}os=hp.get('offer');pid=hp.get('peer')||uuid()}
+  else pid=uuid();
+  const offer=decSDP(os);addContact(pid,'상대');ap=pid;
+  const s=getSess(pid);s.offerer=false;initPC(pid);
+  await s.pc.setRemoteDescription(offer);const ans=await s.pc.createAnswer();await s.pc.setLocalDescription(ans);await waitIce(s.pc);
+  showView('chatScreen');document.getElementById('chatTitle').textContent='상대';
+  document.getElementById('passwordPrompt').style.display='block';
+  document.getElementById('answerModalLink').textContent=location.origin+location.pathname+'#answer='+encSDP(s.pc.localDescription)+'&peer='+pid;
+  document.getElementById('answerModal').classList.remove('hidden');renderContactList();
 }
-function closeAnswerModal() { document.getElementById('answerModal').classList.add('hidden'); }
-function copyAnswerModalLink() { const t = document.getElementById('answerModalLink').textContent; navigator.clipboard.writeText(t).then(()=>alert('복사됨')).catch(()=>prompt('복사:',t)); }
-async function applyAnswerLink() {
-  const l = document.getElementById('answerLinkInput').value.trim(); if (!l) return;
-  if (!activePeerId || !sessions[activePeerId]?.pc || !sessions[activePeerId]?.isOfferer) { alert('먼저 방 생성 후 사용'); return; }
-  let answerStr = l; if (l.startsWith('http')) { const u = new URL(l); const hp = new URLSearchParams(u.hash.substring(1)); if (!hp.has('answer')) { alert('잘못된 Answer'); return; } answerStr = hp.get('answer'); }
-  await sessions[activePeerId].pc.setRemoteDescription(decodeSDP(answerStr));
-  showView('chatScreen'); document.getElementById('chatTitle').textContent = getContacts().find(c=>c.id===activePeerId)?.name||'채팅';
-  document.getElementById('passwordPrompt').style.display = 'block';
+function closeAnswerModal(){document.getElementById('answerModal').classList.add('hidden')}
+function copyAnswerModalLink(){const t=document.getElementById('answerModalLink').textContent;navigator.clipboard.writeText(t).then(()=>alert('복사됨')).catch(()=>prompt('복사:',t))}
+async function applyAnswerLink(){
+  const l=document.getElementById('answerLinkInput').value.trim();if(!l)return;
+  if(!ap||!sessions[ap]?.pc||!sessions[ap]?.offerer){alert('먼저 방 생성 후 사용');return}
+  let as=l;if(l.startsWith('http')){const u=new URL(l);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('answer')){alert('잘못된 Answer');return}as=hp.get('answer')}
+  await sessions[ap].pc.setRemoteDescription(decSDP(as));
+  showView('chatScreen');document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===ap)?.name||'채팅';
+  document.getElementById('passwordPrompt').style.display='block';
 }
-function waitIce(pc) { return new Promise(r => { if (pc.iceGatheringState==='complete') r(); else pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState==='complete') r(); }); }); }
+function waitIce(pc){return new Promise(r=>{if(pc.iceGatheringState==='complete')r();else pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete')r()})})}
 
-/********************* 6. WebRTC & 암호화 세션 *********************/
-function initPC(peerId) {
-  const sess = sessions[peerId];
-  if (sess.pc) sess.pc.close();
-  sess.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-  sess.pc.oniceconnectionstatechange = () => {
-    const state = sess.pc.iceConnectionState;
-    if (state==='connected'||state==='completed') {
-      sess.isOnline = true; updateConn(true); renderContactList(); sess.reconnectAttempts = 0;
-      if (hasPendingDestroy(peerId)) trySendDestroy(peerId);
-    } else {
-      const wasOnline = sess.isOnline; sess.isOnline = false; updateConn(false);
-      if (wasOnline) { sendClearRevealed(peerId); clearRevealedCanvases(peerId); }
-      if (state==='failed') {
-        if (sess.reconnectAttempts<3) { sess.reconnectAttempts++; setTimeout(()=>{if(sess.pc&&sess.pc.iceConnectionState==='failed')try{sess.pc.restartIce()}catch(e){}},2000); }
-        else { sess.handshakeDone=false; sess.rootKey=null; sess.sendChainKey=null; sess.recvChainKey=null; sess.confirmed=false; addSystemMsg('⚠️ 연결 끊김, 보안 세션 초기화'); }
-      }
-    }
-  };
-  sess.pc.ondatachannel = e => {
-    if (e.channel.label==='chat') { sess.dc = e.channel; setupDC(peerId); }
-    if (e.channel.label==='typing') { sess.typingDC = e.channel; setupTypingDC(peerId); }
-  };
-}
-function setupDC(peerId) {
-  const sess = sessions[peerId]; if (!sess?.dc) return;
-  sess.dc.onopen = () => {
-    if (isDestroyed(peerId)) return;
-    sess.isOnline = true; updateConn(true); renderContactList();
-    if (hasPendingDestroy(peerId)) { trySendDestroy(peerId); return; }
-    if (sess.handshakeDone) {
-      addSystemMsg('🔄 연결 복구, 재인증 필요');
-      sess.handshakeDone=false; sess.rootKey=null; sess.sendChainKey=null; sess.recvChainKey=null; sess.typingKey=null; sess.confirmed=false;
-      startEcdhExchange(peerId);
-    } else if (!sess.handshakeDone && !sess.rootKey) {
-      if (!sess.ourEcdhPair) startEcdhExchange(peerId);
-    }
-  };
-  sess.dc.onmessage = e => onMsg(peerId, e);
-  sess.dc.onclose = () => {
-    const wasOnline = sess.isOnline; sess.isOnline = false; updateConn(false); renderContactList();
-    if (wasOnline) { sendClearRevealed(peerId); clearRevealedCanvases(peerId); }
-  };
-}
-function setupTypingDC(peerId) {
-  const sess = sessions[peerId]; if (!sess?.typingDC) return;
-  sess.typingDC.onmessage = e => {
-    if (typeof e.data === 'string') {
-      try {
-        const d = JSON.parse(e.data);
-        if (d.type === '__destroy_req__') { markDestroyed(d.peerId||peerId); goHome(); return; }
-        if (sess.typingKey) decryptTyping(sess, d).then(state => {
-          if (peerId===activePeerId) document.getElementById('typingIndicator').style.display = state==='1'?'block':'none';
-        }).catch(()=>{});
-      } catch(e) {}
-    }
-  };
-}
+// WebRTC
+function initPC(pid){const s=sessions[pid];if(s.pc)s.pc.close();s.pc=new RTCPeerConnection({iceServers:ICE});s.pc.oniceconnectionstatechange=()=>{const st=s.pc.iceConnectionState;if(st==='connected'||st==='completed'){s.online=true;up(true);renderContactList();s.rtry=0;if(hasPD(pid))trySendDestroy(pid)}else{const was=s.online;s.online=false;up(false);if(was){sendClear(pid);clearRevealed(pid)}if(st==='failed'){if(s.rtry<3){s.rtry++;setTimeout(()=>{if(s.pc&&s.pc.iceConnectionState==='failed')try{s.pc.restartIce()}catch(e){}},2000)}else{s.done=false;s.rk=null;s.sck=null;s.rck=null;s.conf=false;addSys('⚠️ 연결 끊김')}}}};s.pc.ondatachannel=e=>{if(e.channel.label==='chat'){s.dc=e.channel;setupDC(pid)}if(e.channel.label==='typing'){s.tdc=e.channel;setupTDC(pid)}}}
+function setupDC(pid){const s=sessions[pid];if(!s?.dc)return;s.dc.onopen=()=>{if(isDest(pid))return;s.online=true;up(true);renderContactList();if(hasPD(pid)){trySendDestroy(pid);return}if(s.done){addSys('🔄 재인증 필요');s.done=false;s.rk=null;s.sck=null;s.rck=null;s.tk=null;s.conf=false;startEcdh(pid)}else if(!s.done&&!s.rk){if(!s.ourEcdh)startEcdh(pid)}};s.dc.onmessage=e=>onMsg(pid,e);s.dc.onclose=()=>{const was=s.online;s.online=false;up(false);renderContactList();if(was){sendClear(pid);clearRevealed(pid)}}}
+function setupTDC(pid){const s=sessions[pid];if(!s?.tdc)return;s.tdc.onmessage=e=>{if(typeof e.data==='string'){try{const d=JSON.parse(e.data);if(d.type==='__destroy_req__'){markDest(d.peerId||pid);goHome()}if(s.tk)decTyping(s,d).then(st=>{if(pid===ap)document.getElementById('typingIndicator').style.display=st==='1'?'block':'none'}).catch(()=>{})}catch(e){}}}}
 
-/********************* 7. 더블 래칫 (완전 구현) *********************/
-async function startEcdhExchange(peerId) {
-  const sess = sessions[peerId];
-  const kp = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
-  sess.ourEcdhPair = { privateKey: kp.privateKey, publicKey: kp.publicKey };
-  const pubRaw = await crypto.subtle.exportKey('raw', kp.publicKey);
-  if (sess.isOfferer) {
-    sess.salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
-    sess.dc.send(JSON.stringify({ type:'__ecdhe__', salt: buf2b64(sess.salt.buffer), pubKey: buf2b64(pubRaw) }));
-  } else {
-    sess.dc.send(JSON.stringify({ type:'__ecdhe__', pubKey: buf2b64(pubRaw) }));
+// ★ 완전한 더블 래칫 (Signal 프로토콜 기반)
+async function startEcdh(pid){
+  const s=sessions[pid];const kp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);
+  s.ourEcdh={privateKey:kp.privateKey,publicKey:kp.publicKey};const pub=await crypto.subtle.exportKey('raw',kp.publicKey);
+  if(s.offerer){s.salt=crypto.getRandomValues(new Uint8Array(SALT));s.dc.send(JSON.stringify({type:'__ecdhe__',salt:bb(s.salt.buffer),pubKey:bb(pub)}))}
+  else s.dc.send(JSON.stringify({type:'__ecdhe__',pubKey:bb(pub)}))
+}
+async function handleEcdhe(pid,d){const s=sessions[pid];if(s.done)return;if(d.salt)s.salt=new Uint8Array(bf(d.salt));s.peerEcdh=await crypto.subtle.importKey('raw',bf(d.pubKey),ECDH,true,[]);if(s.pw&&s.ourEcdh&&s.peerEcdh&&s.salt)await deriveRK(pid)}
+async function submitPassword(){
+  if(!ap)return;const s=sessions[ap];const pw=document.getElementById('chatPasswordInput').value.trim();
+  if(!pw){document.getElementById('passwordError').textContent='암호 입력';document.getElementById('passwordError').style.display='block';return}
+  s.pw=pw;if(s.salt&&s.ourEcdh&&s.peerEcdh)await deriveRK(ap);
+  else{document.getElementById('passwordError').textContent='연결 준비 중';document.getElementById('passwordError').style.display='block'}
+}
+async function deriveRK(pid){
+  const s=sessions[pid];
+  const km=await crypto.subtle.importKey('raw',sb(s.pw),'PBKDF2',false,['deriveKey']);
+  s.authKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s.salt,iterations:PBKDF2,hash:'SHA-512'},km,{name:'AES-GCM',length:ALEN},true,['encrypt','decrypt']);
+  const ecdhBits=await crypto.subtle.deriveBits({name:'ECDH',public:s.peerEcdh},s.ourEcdh.privateKey,521);
+  const authRaw=await crypto.subtle.exportKey('raw',s.authKey);
+  const ikm=cat(ecdhBits,sb(s.pw));
+  const hkdfKey=await crypto.subtle.importKey('raw',ikm,'HKDF',false,['deriveBits']);
+  const rk=await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-512',salt:authRaw,info:sb('root')},hkdfKey,256);
+  s.rk=rk;s.ourEpk=s.ourEcdh;s.theirEpk=s.peerEcdh;
+  const tkr=new Uint8Array(rk).slice(0,16);
+  s.tk=await crypto.subtle.importKey('raw',tkr,{name:'AES-GCM',length:TALEN},false,['encrypt','decrypt']);
+  s.done=true;
+  if(s.offerer)await sendConf(pid);
+  if(s.pconf){const p=s.pconf;s.pconf=null;await handleConf(pid,p)}
+  if(pid===ap){document.getElementById('securityCard').style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);document.getElementById('passwordPrompt').style.display='none';document.getElementById('passwordError').style.display='none'}
+}
+async function sendConf(pid){
+  const s=sessions[pid];if(!s.rk||!s.dc||s.dc.readyState!=='open')return;
+  const nkp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEpk=nkp;
+  const nck=await dhRatchet(s,nkp.privateKey,s.theirEpk);s.sck=nck;s.sn=0;
+  const pub=await crypto.subtle.exportKey('raw',nkp.publicKey);s.dc.send(JSON.stringify({type:'__confirm__',dhPub:bb(pub)}))
+}
+async function handleConf(pid,d){const s=sessions[pid];if(!s.rk){s.pconf=d;return}if(d.dhPub)await recvRatchet(s,d.dhPub);s.conf=true;if(!s.offerer)await sendConf(pid);if(pid===ap){document.getElementById('securityCard').style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);document.getElementById('passwordPrompt').style.display='none';document.getElementById('passwordError').style.display='none'}flushQ(pid)}
+async function dhRatchet(s,ourPriv,theirPub){const bits=await crypto.subtle.deriveBits({name:'ECDH',public:theirPub},ourPriv,521);const ikm=cat(bits,s.rk);const hkdfKey=await crypto.subtle.importKey('raw',ikm,'HKDF',false,['deriveBits']);const okm=await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-512',salt:new Uint8Array(32),info:sb('ratchet')},hkdfKey,512);s.rk=okm.slice(0,32);return okm.slice(32,64)}
+async function symRatchet(ck){const k=await crypto.subtle.importKey('raw',ck,{name:'HMAC',hash:'SHA-512'},false,['sign']);const mk=await crypto.subtle.sign('HMAC',k,new Uint8Array([1]));const nck=await crypto.subtle.sign('HMAC',k,new Uint8Array([2]));return{msgKey:mk.slice(0,32),nextChainKey:nck.slice(0,32)}}
+async function sendingRatchet(s){if(!s.sck){const kp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEpk=kp;s.sck=await dhRatchet(s,kp.privateKey,s.theirEpk);s.sn=0;const pub=await crypto.subtle.exportKey('raw',kp.publicKey);return bb(pub)}return null}
+async function encryptPayload(s,obj){
+  const dhPub=await sendingRatchet(s);const{mk,nck}=await symRatchet(s.sck);s.sck=nck;
+  const seq=s.sn++,iv=crypto.getRandomValues(new Uint8Array(16));
+  const pad=PADMIN+Math.floor(crypto.getRandomValues(new Uint8Array(1))[0]/256*(PADMAX-PADMIN));
+  const padded={...obj,_pad:bb(crypto.getRandomValues(new Uint8Array(pad)).buffer)};
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['encrypt']),sb(JSON.stringify(padded)));
+  const r={seq,iv:Array.from(new Uint8Array(iv)),ct:Array.from(new Uint8Array(ct))};if(dhPub)r.dhPub=dhPub;
+  new Uint8Array(mk).fill(0);return r;
+}
+async function recvRatchet(s,dhPubB64){const pub=bf(dhPubB64);const peerPub=await crypto.subtle.importKey('raw',pub,ECDH,true,[]);s.rck=await dhRatchet(s,s.ourEpk.privateKey,peerPub);s.rn=0;s.theirEpk=peerPub}
+async function decryptPayload(s,d){
+  if(d.dhPub)await recvRatchet(s,d.dhPub);if(!s.rck)throw new Error('no recv chain');
+  let {seq,iv,ct}=d; if(seq<s.rn){
+    const stored=s.skip.get(seq);if(stored){const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',stored,'AES-GCM',false,['decrypt']),new Uint8Array(ct));const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj}else return null;
   }
-}
-async function handleEcdheMessage(peerId, data) {
-  const sess = sessions[peerId];
-  if (sess.handshakeDone) return;
-  if (data.salt) sess.salt = new Uint8Array(b642buf(data.salt));
-  sess.peerEcdhPub = await crypto.subtle.importKey('raw', b642buf(data.pubKey), ECDH_ALG, true, []);
-  if (sess.password && sess.ourEcdhPair && sess.peerEcdhPub && sess.salt) await deriveSessionKey(peerId);
-}
-async function submitPassword() {
-  if (!activePeerId) return;
-  const sess = sessions[activePeerId];
-  const pw = document.getElementById('chatPasswordInput').value.trim();
-  if (!pw) { document.getElementById('passwordError').textContent = '암호 입력'; document.getElementById('passwordError').style.display='block'; return; }
-  sess.password = pw;
-  if (sess.salt && sess.ourEcdhPair && sess.peerEcdhPub) await deriveSessionKey(activePeerId);
-  else { document.getElementById('passwordError').textContent = '연결 준비 중'; document.getElementById('passwordError').style.display='block'; }
-}
-async function deriveSessionKey(peerId) {
-  const sess = sessions[peerId];
-  try {
-    const km = await crypto.subtle.importKey('raw', str2buf(sess.password), 'PBKDF2', false, ['deriveKey']);
-    sess.authKey = await crypto.subtle.deriveKey({name:'PBKDF2', salt:sess.salt, iterations:PBKDF2_ITERS, hash:'SHA-512'}, km, {name:'AES-GCM',length:AES_LEN}, true, ['encrypt','decrypt']);
-    const ecdhBits = await crypto.subtle.deriveBits({name:'ECDH', public: sess.peerEcdhPub}, sess.ourEcdhPair.privateKey, 521);
-    const authRaw = await crypto.subtle.exportKey('raw', sess.authKey);
-    const ikm = concatBufs(ecdhBits, str2buf(sess.password));
-    const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
-    const rootKey = await crypto.subtle.deriveBits({name:'HKDF', hash:'SHA-512', salt:authRaw, info:str2buf('root')}, hkdfKey, 256);
-    sess.rootKey = rootKey;
-    sess.ourEphemeralKeyPair = sess.ourEcdhPair; sess.theirEphemeralPub = sess.peerEcdhPub;
-    const typingKeyRaw = new Uint8Array(rootKey).slice(0,16);
-    sess.typingKey = await crypto.subtle.importKey('raw', typingKeyRaw, {name:'AES-GCM',length:TYPING_AES_LEN}, false, ['encrypt','decrypt']);
-    sess.handshakeDone = true;
-    if (sess.isOfferer) await sendConfirmation(peerId);
-    if (sess.pendingConfirm) { handleConfirmation(peerId, sess.pendingConfirm); sess.pendingConfirm = null; }
-    if (peerId===activePeerId) {
-      document.getElementById('securityCard').style.display='flex';
-      document.getElementById('sessionFingerprint').textContent = buf2hex(sess.rootKey);
-      document.getElementById('passwordPrompt').style.display='none';
-      document.getElementById('passwordError').style.display='none';
-    }
-  } catch(e) {
-    if (peerId===activePeerId) {
-      document.getElementById('passwordError').textContent = '키 생성 실패'; document.getElementById('passwordError').style.display='block';
-    }
-  }
-}
-async function sendConfirmation(peerId) {
-  const sess = sessions[peerId];
-  if (!sess.rootKey || !sess.dc || sess.dc.readyState!=='open') return;
-  const newKP = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
-  sess.ourEphemeralKeyPair = newKP;
-  const newChainKey = await dhRatchet(sess, newKP.privateKey, sess.theirEphemeralPub);
-  sess.sendChainKey = newChainKey; sess.sendMsgNum = 0;
-  const pubRaw = await crypto.subtle.exportKey('raw', newKP.publicKey);
-  sess.dc.send(JSON.stringify({ type:'__confirm__', dhPub: buf2b64(pubRaw) }));
-}
-async function handleConfirmation(peerId, data) {
-  const sess = sessions[peerId];
-  if (!sess.rootKey) { sess.pendingConfirm = data; return; }
-  if (data.dhPub) await processReceivedRatchet(sess, data.dhPub);
-  sess.confirmed = true;
-  if (!sess.isOfferer) await sendConfirmation(peerId);
-  if (peerId===activePeerId) {
-    document.getElementById('securityCard').style.display='flex';
-    document.getElementById('sessionFingerprint').textContent = buf2hex(sess.rootKey);
-    document.getElementById('passwordPrompt').style.display='none';
-    document.getElementById('passwordError').style.display='none';
-  }
-  flushOfflineQueue(peerId);
-}
-async function dhRatchet(sess, ourNewPriv, theirPub) {
-  const dhBits = await crypto.subtle.deriveBits({name:'ECDH', public:theirPub}, ourNewPriv, 521);
-  const ikm = concatBufs(dhBits, sess.rootKey);
-  const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
-  const okm = await crypto.subtle.deriveBits({name:'HKDF', hash:'SHA-512', salt:new Uint8Array(32), info:str2buf('double-ratchet')}, hkdfKey, 512);
-  sess.rootKey = okm.slice(0,32);
-  return okm.slice(32,64);
-}
-async function symmetricRatchet(chainKey) {
-  const ck = await crypto.subtle.importKey('raw', chainKey, {name:'HMAC', hash:'SHA-512'}, false, ['sign']);
-  const msgKeySig = await crypto.subtle.sign('HMAC', ck, new Uint8Array([1]));
-  const nextSig = await crypto.subtle.sign('HMAC', ck, new Uint8Array([2]));
-  return { msgKey: msgKeySig.slice(0,32), nextChainKey: nextSig.slice(0,32) };
-}
-async function performSendingRatchetIfNeeded(sess) {
-  if (!sess.sendChainKey) {
-    const kp = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
-    sess.ourEphemeralKeyPair = kp;
-    sess.sendChainKey = await dhRatchet(sess, kp.privateKey, sess.theirEphemeralPub);
-    sess.sendMsgNum = 0;
-    const pubRaw = await crypto.subtle.exportKey('raw', kp.publicKey);
-    return buf2b64(pubRaw);
-  }
-  return null;
-}
-async function encryptPayload(sess, obj) {
-  const dhPub = await performSendingRatchetIfNeeded(sess);
-  const { msgKey, nextChainKey } = await symmetricRatchet(sess.sendChainKey);
-  sess.sendChainKey = nextChainKey;
-  const seq = sess.sendMsgNum++;
-  const iv = crypto.getRandomValues(new Uint8Array(16));
-  const padLen = PADDING_MIN + Math.floor(crypto.getRandomValues(new Uint8Array(1))[0]/256*(PADDING_MAX-PADDING_MIN));
-  const padded = { ...obj, _pad: buf2b64(crypto.getRandomValues(new Uint8Array(padLen)).buffer) };
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, await crypto.subtle.importKey('raw',msgKey,'AES-GCM',false,['encrypt']), str2buf(JSON.stringify(padded)));
-  const result = { seq, iv: Array.from(new Uint8Array(iv)), ct: Array.from(new Uint8Array(ct)) };
-  if (dhPub) result.dhPub = dhPub;
-  new Uint8Array(msgKey).fill(0);
-  return result;
-}
-async function processReceivedRatchet(sess, dhPubB64) {
-  const pubRaw = b642buf(dhPubB64);
-  const peerPub = await crypto.subtle.importKey('raw', pubRaw, ECDH_ALG, true, []);
-  sess.recvChainKey = await dhRatchet(sess, sess.ourEphemeralKeyPair.privateKey, peerPub);
-  sess.recvMsgNum = 0;
-  sess.theirEphemeralPub = peerPub;
-}
-async function decryptPayload(sess, d) {
-  if (d.dhPub) await processReceivedRatchet(sess, d.dhPub);
-  if (!sess.recvChainKey) throw new Error('no recv chain');
-  let { seq, iv, ct } = d;
-  if (seq < sess.recvMsgNum) return null;
-  while (sess.recvMsgNum < seq) {
-    const { nextChainKey } = await symmetricRatchet(sess.recvChainKey);
-    sess.recvChainKey = nextChainKey; sess.recvMsgNum++;
-  }
-  const { msgKey, nextChainKey } = await symmetricRatchet(sess.recvChainKey);
-  sess.recvChainKey = nextChainKey; sess.recvMsgNum = seq+1;
-  const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(iv)}, await crypto.subtle.importKey('raw',msgKey,'AES-GCM',false,['decrypt']), new Uint8Array(ct));
-  new Uint8Array(msgKey).fill(0);
-  const obj = JSON.parse(textDecoder.decode(plain)); delete obj._pad;
-  return obj;
+  while(s.rn<seq){const{mk,nck}=await symRatchet(s.rck);s.skip.set(s.rn,mk);s.rck=nck;s.rn++}
+  const{mk,nck}=await symRatchet(s.rck);s.skip.set(seq,mk);s.rck=nck;s.rn=seq+1;
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['decrypt']),new Uint8Array(ct));
+  const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj;
 }
 
-/********************* 8. 캔버스 기반 Hold-to-Reveal (고해상도) *********************/
-let currentRevealedEl = null;
+// 캔버스 Hold-to-Reveal
+let currentRevealed=null;
+function appendEnc(enc,pid,who,mid){
+  const md=document.getElementById('messages');const d=document.createElement('div');d.className='msg '+who;if(mid)d.id='msg-'+mid;
+  const c=document.createElement('canvas');c.className='bubble-canvas';const dpr=window.devicePixelRatio||1,bw=230,bh=85;c.width=bw*dpr;c.height=bh*dpr;c.style.width=bw+'px';c.style.height=bh+'px';const ctx=c.getContext('2d');ctx.scale(dpr,dpr);drawLocked(ctx,bw,bh,who);
+  d.dataset.enc=JSON.stringify(enc);d.dataset.who=who;d.appendChild(c);
+  const tdiv=document.createElement('div');tdiv.className='time';tdiv.textContent=new Date().toLocaleTimeString();d.appendChild(tdiv);
+  let timer;const clear=()=>{drawLocked(c.getContext('2d'),bw,bh,who);if(currentRevealed===c)currentRevealed=null};
+  c.addEventListener('pointerdown',e=>{e.preventDefault();if(currentRevealed&&currentRevealed!==c){const ctx2=currentRevealed.getContext('2d');const w2=parseInt(currentRevealed.style.width);const h2=parseInt(currentRevealed.style.height);const w=currentRevealed.parentElement?.dataset.who||'other';drawLocked(ctx2,w2,h2,w);currentRevealed=null}
+    timer=setTimeout(async()=>{const enc=JSON.parse(d.dataset.enc);const s=sessions[pid];const ctx=c.getContext('2d');if(!s||!s.rk||!s.conf){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f0a060';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('🔒 암호 입력 필요',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1800);return}
+      try{const obj=await decryptPayload(s,enc);if(obj){let txt='';if(obj.type==='text')txt=obj.content;else if(obj.type==='emoji')txt=obj.content;else if(obj.type==='media')txt='[이미지]';else if(obj.type==='file_start')txt=`📁 ${obj.name} (${fmtB(obj.size)})`;if(!txt)return;
+        ctx.clearRect(0,0,bw,bh);const grad=ctx.createLinearGradient(0,0,bw,bh);if(who==='me'){grad.addColorStop(0,'rgba(108,142,240,0.6)');grad.addColorStop(1,'rgba(130,100,240,0.6)')}else{grad.addColorStop(0,'rgba(22,30,44,0.9)');grad.addColorStop(1,'rgba(28,36,52,0.9)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#e6eaf0';ctx.font='15px Inter';ctx.textBaseline='middle';wrapText(ctx,txt,12,bh/2,bw-24,21);currentRevealed=c;const buf=te.encode(txt);new Uint8Array(buf).fill(0)}}catch(e){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f06c6c';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('복호화 실패',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1500)}},400)});
+  const up=()=>{clearTimeout(timer);if(currentRevealed===c)clear()};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);c.addEventListener('pointerleave',up);
+  md.appendChild(c);md.scrollTop=md.scrollHeight;
+}
+function drawLocked(ctx,w,h,who){ctx.clearRect(0,0,w,h);const grad=ctx.createLinearGradient(0,0,w,h);if(who==='me'){grad.addColorStop(0,'rgba(108,142,240,0.3)');grad.addColorStop(1,'rgba(130,100,240,0.3)')}else{grad.addColorStop(0,'rgba(22,30,44,0.7)');grad.addColorStop(1,'rgba(28,36,52,0.7)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,w,h,16);ctx.fill();ctx.fillStyle='#8892b0';ctx.font='24px Inter';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔒',w/2,h/2-6);ctx.font='10px Inter';ctx.fillText('길게 눌러 보기',w/2,h/2+18)}
+function wrapText(ctx,t,x,y,mw,lh){const ch=t.split('');const ls=[];let cl='';for(const c of ch){const tl=cl+c;if(ctx.measureText(tl).width>mw&&cl){ls.push(cl);cl=c}else cl=tl}if(cl)ls.push(cl);const th=ls.length*lh;let sy=y-th/2+lh/2;for(const l of ls){ctx.fillText(l,x,sy);sy+=lh}}
+function clearRevealed(pid){if(pid!==ap)return;document.querySelectorAll('.bubble-canvas').forEach(c=>{const ctx=c.getContext('2d');const w=parseInt(c.style.width);const h=parseInt(c.style.height);const who=c.parentElement?.dataset.who||'other';drawLocked(ctx,w,h,who)});currentRevealed=null}
 
-function appendEncryptedMessage(encPayload, peerId, who, msgId) {
-  const messagesDiv = document.getElementById('messages');
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'msg ' + who;
-  if (msgId) msgDiv.id = 'msg-' + msgId;
+// 메시지 송수신
+function addSys(t){const d=document.createElement('div');d.className='msg system';d.innerHTML=`<div style="background:rgba(255,255,255,0.04);padding:6px 12px;border-radius:12px;font-size:0.78rem;color:var(--sub)">${t}</div>`;document.getElementById('messages').appendChild(d);document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight}
+async function sendText(){if(!ap||isDest(ap))return;const s=sessions[ap];if(!s)return;const inp=document.getElementById('msgInput'),txt=inp.value.trim();if(!txt)return;const mid=uuid(),payload={type:'text',content:txt,id:mid};if(!s.dc||s.dc.readyState!=='open'||!s.rk||!s.conf){const q=await loadQ(ap);q.push(payload);await saveQ(ap,q);addSys('⏳ 오프라인 저장');inp.value='';return}try{const enc=await encryptPayload(s,payload);s.dc.send(JSON.stringify({type:'msg',...enc}));appendEnc(enc,ap,'me',mid);inp.value=''}catch(e){addSys('전송 실패')}}
+function onMsg(pid,e){if(isDest(pid))return;if(hasPD(pid)){markDest(pid);goHome();return}const s=sessions[pid];if(!s)return;if(e.data instanceof ArrayBuffer){handleBinaryChunk(pid,e.data);return}try{const d=JSON.parse(e.data);if(d.type==='__ecdhe__'){handleEcdhe(pid,d);return}if(d.type==='__confirm__'){handleConf(pid,d);return}if(d.type==='__destroy_req__'){markDest(d.peerId||pid);goHome();return}if(d.type==='__clear_revealed__'){clearRevealed(pid);return}if(d.type==='msg'){if(!s.rk||!s.conf){if(pid===ap)appendEnc(d,pid,'other');else s.pend.push(d);return}decryptPayload(s,d).then(inner=>{if(!inner)return;if(inner.id&&s.recvIds.has(inner.id))return;if(inner.id)s.recvIds.add(inner.id);switch(inner.type){case'text':case'emoji':case'media':if(pid===ap){appendEnc(d,pid,'other',inner.id);sendRead(pid,inner.id)}else{s.pend.push(d);notifyIfNeeded('메시지 수신')}break;case'read':markRead(pid,inner.id);break;case'file_start':handleFileStart(pid,inner);break;case'file_end':if(s.frecv&&s.frecv.id===inner.id)assembleFile(pid);break;case'__destroy__':markDest(pid);goHome()}}).catch(()=>{if(pid===ap)appendEnc(d,pid,'other');else s.pend.push(d)})}}catch(e){}}
+async function flushQ(pid){const s=sessions[pid];if(!s?.dc||s.dc.readyState!=='open'||!s.rk||!s.conf)return;const q=await loadQ(pid);if(!q.length)return;clearQ(pid);addSys(`📬 ${q.length}개 전송 중`);for(const p of q){try{const enc=await encryptPayload(s,p);s.dc.send(JSON.stringify({type:'msg',...enc}))}catch(e){const r=await loadQ(pid);r.push(p);await saveQ(pid,r);break}}}
+function notifyIfNeeded(c){if(document.visibilityState==='hidden'&&'Notification' in window&&Notification.permission==='granted')new Notification('P2P',{body:c})}
+function sendRead(pid,mid){const s=sessions[pid];if(s?.rk&&s.conf&&s.dc?.readyState==='open')encryptPayload(s,{type:'read',id:mid}).then(enc=>s.dc.send(JSON.stringify({type:'msg',...enc}))).catch(()=>{})}
+function markRead(pid,mid){const el=document.getElementById('msg-'+mid);if(el){const t=el.querySelector('.time');if(t&&!t.querySelector('.read-status'))t.innerHTML+=' <span style="color:var(--success)">✓✓</span>'}}
 
-  // 고해상도 캔버스 생성
-  const canvas = document.createElement('canvas');
-  canvas.className = 'bubble-canvas';
-  const dpr = window.devicePixelRatio || 1;
-  const baseW = 220, baseH = 80;
-  canvas.width = baseW * dpr; canvas.height = baseH * dpr;
-  canvas.style.width = baseW + 'px'; canvas.style.height = baseH + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  drawLockedState(ctx, baseW, baseH);
+// 파일 전송
+async function handleFiles(files){for(const f of files)await sendFile(f)}
+async function sendFile(file){if(!ap||isDest(ap))return;const s=sessions[ap];if(!s?.dc||s.dc.readyState!=='open'||!s.rk||!s.conf){addSys('파일 전송 불가');return}const fid=uuid();const fek=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt']);const fekRaw=await crypto.subtle.exportKey('raw',fek);const iv=crypto.getRandomValues(new Uint8Array(12));const fileBuf=await file.arrayBuffer();const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},fek,fileBuf);const enc=new Uint8Array(iv.byteLength+ct.byteLength);enc.set(iv);enc.set(new Uint8Array(ct),iv.byteLength);const meta=await encryptPayload(s,{type:'file_start',id:fid,name:file.name,size:enc.byteLength,fek:bb(fekRaw)});s.dc.send(JSON.stringify({type:'msg',...meta}));addSys(`📤 ${file.name} 전송 중`);let off=0;(function sendChunk(){if(off>=enc.byteLength){encryptPayload(s,{type:'file_end',id:fid}).then(endEnc=>s.dc.send(JSON.stringify({type:'msg',...endEnc})));addSys(`📤 ${file.name} 전송 완료`);return}const end=Math.min(off+CSIZE,enc.byteLength);s.dc.send(enc.slice(off,end).buffer);off=end;setTimeout(sendChunk,10)})()}
+function handleFileStart(pid,inner){const s=sessions[pid];if(!s)return;s.frecv={id:inner.id,name:inner.name,size:inner.size,fek:bf(inner.fek),chunks:[],recv:0};addSys(`📥 ${inner.name} 수신 중`)}
+function handleBinaryChunk(pid,buf){const s=sessions[pid];if(!s?.frecv)return;s.frecv.chunks.push(new Uint8Array(buf));s.frecv.recv+=buf.byteLength}
+async function assembleFile(pid){const s=sessions[pid];if(!s?.frecv)return;const fr=s.frecv;const blob=new Blob(fr.chunks);const iv=blob.slice(0,12);const ct=blob.slice(12);const key=await crypto.subtle.importKey('raw',fr.fek,'AES-GCM',false,['decrypt']);const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:await iv.arrayBuffer()},key,await ct.arrayBuffer());const dec=new Blob([plain]);const url=URL.createObjectURL(dec);addSys(`📎 <a href="${url}" download="${esc(fr.name)}" style="color:var(--accent)">${esc(fr.name)} 다운로드</a>`);s.frecv=null;setTimeout(()=>URL.revokeObjectURL(url),60000)}
 
-  msgDiv.dataset.enc = JSON.stringify(encPayload);
-  msgDiv.dataset.who = who;
-  msgDiv.appendChild(canvas);
+// 타이핑
+async function encTyping(s,st){if(!s.tk)return null;const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},s.tk,sb(st));return{iv:Array.from(new Uint8Array(iv)),ct:Array.from(new Uint8Array(ct))}}
+async function decTyping(s,d){const iv=new Uint8Array(d.iv),ct=new Uint8Array(d.ct);const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},s.tk,ct);return td.decode(plain)}
+function sendTyping(st){const s=sessions[ap];if(s?.tdc&&s.tdc.readyState==='open'&&s.tk){encTyping(s,st?'1':'0').then(enc=>enc&&s.tdc.send(JSON.stringify(enc))).catch(()=>{})}}
+document.getElementById('msgInput').addEventListener('input',()=>{sendTyping(true);const s=sessions[ap];if(s){clearTimeout(s.ttimer);s.ttimer=setTimeout(()=>sendTyping(false),1500)}});
 
-  const timeDiv = document.createElement('div');
-  timeDiv.className = 'time';
-  timeDiv.textContent = new Date().toLocaleTimeString();
-  msgDiv.appendChild(timeDiv);
+// 삭제 전파
+function setPD(pid){localStorage.setItem(PD+pid,'1')}function clearPD(pid){localStorage.removeItem(PD+pid)}function hasPD(pid){return!!localStorage.getItem(PD+pid)}
+async function destroyActiveChat(){if(ap)await destroyChat(ap)}
+async function destroyChat(pid){const s=sessions[pid];if(!s){markDest(pid);goHome();return}setPD(pid);s.dretry=0;clearRevealed(pid);if(ap===pid){document.getElementById('messages').innerHTML='';goHome()}trySendDestroy(pid);setTimeout(()=>{if(isDest(pid)||hasPD(pid))location.replace('about:blank')},5000)}
+function sendRaw(pid){const s=sessions[pid];if(!s)return false;let sent=false;const msg=JSON.stringify({type:'__destroy_req__',peerId:pid,ts:Date.now()});[s.dc,s.tdc].forEach(ch=>{if(ch&&ch.readyState==='open')try{ch.send(msg);sent=true}catch(e){}});return sent}
+async function trySendDestroy(pid){const s=sessions[pid];if(!s){markDest(pid);return}if(isDest(pid))return;if(s.dretry>=100){markDest(pid);return}const raw=sendRaw(pid);if(raw||(s.rk&&s.conf&&s.dc&&s.dc.readyState==='open')){try{if(!raw&&s.rk&&s.conf){const enc=await encryptPayload(s,{type:'__destroy__',timestamp:Date.now(),id:uuid()});s.dc.send(JSON.stringify({type:'msg',...enc}))}clearPD(pid);markDest(pid);if(ap===pid){goHome();s.pc.close();delete sessions[pid]}renderContactList();return}catch(e){}}const delay=Math.min(1000*Math.pow(2,s.dretry),60000);s.dretry++;setTimeout(()=>{if(!isDest(pid)&&hasPD(pid))trySendDestroy(pid)},delay)}
+function sendClear(pid){const s=sessions[pid];if(!s)return;[s.dc,s.tdc].forEach(ch=>{if(ch&&ch.readyState==='open')ch.send(JSON.stringify({type:'__clear_revealed__'}))})}
 
-  let pressTimer;
-  const clearCanvas = () => {
-    drawLockedState(canvas.getContext('2d'), baseW, baseH);
-    if (currentRevealedEl === canvas) currentRevealedEl = null;
-  };
+// 페이지 이탈 방어
+let itimer;function resetInactivity(){clearTimeout(itimer);itimer=setTimeout(()=>{destroyAllSessions();location.replace('about:blank')},300000)}
+['pointerdown','keydown','scroll'].forEach(ev=>addEventListener(ev,resetInactivity));resetInactivity();
+addEventListener('beforeunload',()=>{if(ap){sendClear(ap);clearRevealed(ap)}});
+addEventListener('pagehide',()=>{if(ap){sendClear(ap);clearRevealed(ap)}});
+addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&ap){clearRevealed(ap);sendClear(ap)}});
 
-  canvas.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    if (currentRevealedEl && currentRevealedEl !== canvas) {
-      const ctx2 = currentRevealedEl.getContext('2d');
-      const w2 = parseInt(currentRevealedEl.style.width);
-      const h2 = parseInt(currentRevealedEl.style.height);
-      drawLockedState(ctx2, w2, h2);
-      currentRevealedEl = null;
-    }
-    pressTimer = setTimeout(async () => {
-      const enc = JSON.parse(msgDiv.dataset.enc);
-      const sess = sessions[peerId];
-      if (!sess || !sess.rootKey || !sess.confirmed) return;
-      try {
-        const plainObj = await decryptPayload(sess, enc);
-        if (plainObj) {
-          let content = '';
-          if (plainObj.type === 'text') content = plainObj.content;
-          else if (plainObj.type === 'emoji') content = plainObj.content;
-          else if (plainObj.type === 'media') content = '[🖼️ 이미지]';
-          else if (plainObj.type === 'file_start') content = `📥 ${plainObj.name} (${formatBytes(plainObj.size)})`;
-          if (!content) return;
-          const ctx = canvas.getContext('2d');
-          ctx.save();
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          ctx.clearRect(0, 0, baseW, baseH);
-          // 배경
-          if (who === 'me') {
-            ctx.fillStyle = 'rgba(74,130,250,0.5)';
-          } else {
-            ctx.fillStyle = 'rgba(22,30,44,0.85)';
-          }
-          ctx.beginPath(); ctx.roundRect(0, 0, baseW, baseH, 12); ctx.fill();
-          // 텍스트 (선명하게)
-          ctx.fillStyle = '#e0e5f0';
-          ctx.font = '15px Inter, "Segoe UI", sans-serif';
-          ctx.textBaseline = 'middle';
-          wrapText(ctx, content, 10, baseH/2, baseW - 20, 20);
-          ctx.restore();
-          currentRevealedEl = canvas;
-          // 평문 제로화
-          const encText = textEncoder.encode(content);
-          new Uint8Array(encText).fill(0);
-        }
-      } catch(e) {}
-    }, 400);
-  });
+// URL 해시
+async function checkHash(){const h=location.hash.substring(1);if(!h)return;const p=new URLSearchParams(h);if(p.has('offer')&&p.has('peer')){const pid=p.get('peer');if(isDest(pid)||hasPD(pid))return;const offer=decSDP(p.get('offer'));if(!getContacts().find(c=>c.id===pid))addContact(pid,'상대');ap=pid;const s=getSess(pid);s.offerer=false;initPC(pid);await s.pc.setRemoteDescription(offer);const ans=await s.pc.createAnswer();await s.pc.setLocalDescription(ans);await waitIce(s.pc);document.getElementById('answerModalLink').textContent=location.origin+location.pathname+'#answer='+encSDP(s.pc.localDescription)+'&peer='+pid;document.getElementById('answerModal').classList.remove('hidden');showView('chatScreen');document.getElementById('chatTitle').textContent='상대';document.getElementById('passwordPrompt').style.display='block';renderContactList()}else if(p.has('answer')&&p.has('peer')){const pid=p.get('peer');if(isDest(pid)||hasPD(pid))return;const ans=decSDP(p.get('answer'));if(!getContacts().find(c=>c.id===pid))addContact(pid,'상대');let s=sessions[pid];if(!s||!s.pc){s=getSess(pid);s.offerer=true;initPC(pid);s.dc=s.pc.createDataChannel('chat',{ordered:true});setupDC(pid)}await s.pc.setRemoteDescription(ans);ap=pid;showView('chatScreen');document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===pid)?.name||'채팅';document.getElementById('passwordPrompt').style.display='block';renderContactList()}}
+addEventListener('hashchange',checkHash);
 
-  const clearPress = () => {
-    clearTimeout(pressTimer);
-    if (currentRevealedEl === canvas) clearCanvas();
-  };
-  canvas.addEventListener('pointerup', clearPress);
-  canvas.addEventListener('pointercancel', clearPress);
-  canvas.addEventListener('pointerleave', clearPress);
+// 이모지
+const EMOJI=['😀','😂','🥰','😎','🤔','👍','❤️','🔥','🎉','💯','😢','😡','🥺','🤯','✨','🍕','🚀','💻','📱','🎵'];
+function buildEmojiPicker(){document.getElementById('emojiGrid').innerHTML=EMOJI.map(e=>`<span class="emoji-item" onclick="sendEmoji('${e}')">${e}</span>`).join('')}
+function sendEmoji(emoji){if(!ap)return;const s=sessions[ap];if(!s)return;const mid=uuid();if(!s.dc||s.dc.readyState!=='open'||!s.rk||!s.conf){loadQ(ap).then(q=>{q.push({type:'emoji',content:emoji,id:mid});saveQ(ap,q)});addSys('⏳ 오프라인 저장');return}encryptPayload(s,{type:'emoji',content:emoji,id:mid}).then(enc=>{s.dc.send(JSON.stringify({type:'msg',...enc}));appendEnc(enc,ap,'me',mid)}).catch(()=>addSys('전송 실패'))}
+function copyTextById(id){const el=document.getElementById(id);const t=el.tagName==='INPUT'||el.tagName==='TEXTAREA'?el.value:el.textContent;navigator.clipboard.writeText(t).then(()=>alert('복사됨')).catch(()=>prompt('복사:',t))}
 
-  messagesDiv.appendChild(msgDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(''); const lines = [];
-  let currentLine = '';
-  for (const char of words) {
-    const testLine = currentLine + char;
-    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = char;
-    } else currentLine = testLine;
-  }
-  if (currentLine) lines.push(currentLine);
-  const totalHeight = lines.length * lineHeight;
-  let startY = y - totalHeight / 2 + lineHeight / 2;
-  for (const line of lines) {
-    ctx.fillText(line, x, startY);
-    startY += lineHeight;
-  }
-}
-
-function drawLockedState(ctx, w, h) {
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, w * (window.devicePixelRatio || 1), h * (window.devicePixelRatio || 1));
-  ctx.restore();
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#1a2332';
-  ctx.beginPath(); ctx.roundRect(0, 0, w, h, 12); ctx.fill();
-  ctx.fillStyle = '#8892b0';
-  ctx.font = '28px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('🔒', w/2, h/2);
-}
-
-function clearRevealedCanvases(peerId) {
-  if (peerId !== activePeerId) return;
-  document.querySelectorAll('.bubble-canvas').forEach(canvas => {
-    const ctx = canvas.getContext('2d');
-    const w = parseInt(canvas.style.width);
-    const h = parseInt(canvas.style.height);
-    drawLockedState(ctx, w, h);
-  });
-  currentRevealedEl = null;
-}
-
-/********************* 9. 메시지 송수신 *********************/
-function addSystemMsg(text) {
-  const div = document.createElement('div');
-  div.className = 'msg system';
-  div.innerHTML = `<div style="background:rgba(255,255,255,0.04); border:none; padding:6px 12px; border-radius:12px; font-size:0.78rem; color:var(--sub);">${text}</div>`;
-  document.getElementById('messages').appendChild(div);
-  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-}
-
-async function sendText() {
-  if (!activePeerId || isDestroyed(activePeerId)) return;
-  const sess = sessions[activePeerId]; if (!sess) return;
-  const inp = document.getElementById('msgInput'); const txt = inp.value.trim(); if (!txt) return;
-  const msgId = genUUID(); const payload = { type:'text', content:txt, id:msgId };
-  if (!sess.dc || sess.dc.readyState!=='open' || !sess.rootKey || !sess.confirmed) {
-    const queue = await loadOfflineQueue(activePeerId); queue.push(payload); await saveOfflineQueue(activePeerId, queue);
-    addSystemMsg('⏳ 오프라인 큐에 저장 (암호화)'); inp.value=''; return;
-  }
-  try {
-    const enc = await encryptPayload(sess, payload);
-    sess.dc.send(JSON.stringify({ type:'msg', ...enc }));
-    appendEncryptedMessage(enc, activePeerId, 'me', msgId);
-    inp.value = '';
-  } catch(e) { addSystemMsg('⚠️ 전송 실패'); }
-}
-function onMsg(peerId, e) {
-  if (isDestroyed(peerId)) return;
-  if (hasPendingDestroy(peerId)) { markDestroyed(peerId); goHome(); return; }
-  const sess = sessions[peerId]; if (!sess) return;
-  if (e.data instanceof ArrayBuffer) { handleBinaryChunk(peerId, e.data); return; }
-  try {
-    const d = JSON.parse(e.data);
-    if (d.type==='__ecdhe__') { handleEcdheMessage(peerId, d); return; }
-    if (d.type==='__confirm__') { handleConfirmation(peerId, d); return; }
-    if (d.type==='__destroy_req__') { markDestroyed(d.peerId||peerId); goHome(); return; }
-    if (d.type==='__clear_revealed__') { clearRevealedCanvases(peerId); return; }
-    if (d.type==='msg') {
-      if (!sess.rootKey || !sess.confirmed) {
-        if (peerId===activePeerId) appendEncryptedMessage(d, peerId, 'other');
-        else sess.pendingMessages.push(d);
-        return;
-      }
-      decryptPayload(sess, d).then(inner => {
-        if (!inner) return;
-        if (inner.id && sess.receivedMessageIds.has(inner.id)) return;
-        if (inner.id) sess.receivedMessageIds.add(inner.id);
-        switch (inner.type) {
-          case 'text': case 'emoji': case 'media':
-            if (peerId===activePeerId) { appendEncryptedMessage(d, peerId, 'other', inner.id); sendReadReceipt(peerId, inner.id); }
-            else { sess.pendingMessages.push(d); notifyIfNeeded('메시지 수신'); }
-            break;
-          case 'read': markAsRead(peerId, inner.id); break;
-          case 'file_start': handleFileStart(peerId, inner); break;
-          case 'file_end': if (sess.fileReceive?.id===inner.id) assembleFile(peerId); break;
-          case '__destroy__': markDestroyed(peerId); goHome(); break;
-        }
-      }).catch(() => {
-        if (peerId===activePeerId) appendEncryptedMessage(d, peerId, 'other');
-        else sess.pendingMessages.push(d);
-      });
-    }
-  } catch(e) {}
-}
-async function flushOfflineQueue(peerId) {
-  const sess = sessions[peerId];
-  if (!sess?.dc || sess.dc.readyState!=='open' || !sess.rootKey || !sess.confirmed) return;
-  const queue = await loadOfflineQueue(peerId);
-  if (!queue.length) return;
-  clearOfflineQueue(peerId);
-  addSystemMsg(`📬 ${queue.length}개 메시지 전송 중...`);
-  for (const payload of queue) {
-    try {
-      const enc = await encryptPayload(sess, payload);
-      sess.dc.send(JSON.stringify({ type:'msg', ...enc }));
-    } catch(e) {
-      const remaining = await loadOfflineQueue(peerId); remaining.push(payload); await saveOfflineQueue(peerId, remaining);
-      break;
-    }
-  }
-}
-function notifyIfNeeded(content) {
-  if (document.visibilityState==='hidden' && 'Notification' in window && Notification.permission==='granted') new Notification('P2P 비밀채팅', { body: content });
-}
-function sendReadReceipt(peerId, msgId) {
-  const sess = sessions[peerId];
-  if (sess?.rootKey && sess.confirmed && sess.dc?.readyState==='open') {
-    encryptPayload(sess, {type:'read',id:msgId}).then(enc => sess.dc.send(JSON.stringify({type:'msg',...enc}))).catch(()=>{});
-  }
-}
-function markAsRead(peerId, msgId) {
-  const el = document.getElementById('msg-' + msgId);
-  if (el) {
-    const t = el.querySelector('.time');
-    if (t && !t.querySelector('.read-status')) t.innerHTML += ' <span class="read-status" style="color:var(--success);">✓✓</span>';
-  }
-}
-
-/********************* 10. 대용량 파일 전송 (청크 분할, 암호화, 재조립) *********************/
-async function handleFiles(files) {
-  for (const f of files) await sendFile(f);
-}
-async function sendFile(file) {
-  if (!activePeerId || isDestroyed(activePeerId)) return;
-  const sess = sessions[activePeerId];
-  if (!sess?.dc || sess.dc.readyState!=='open' || !sess.rootKey || !sess.confirmed) {
-    addSystemMsg('⚠️ 파일 전송 불가 (보안 세션 없음)'); return;
-  }
-  const fileId = genUUID();
-  const fek = await crypto.subtle.generateKey({name:'AES-GCM', length:256}, true, ['encrypt']);
-  const fekRaw = await crypto.subtle.exportKey('raw', fek);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const fileBuf = await file.arrayBuffer();
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, fek, fileBuf);
-  const encData = new Uint8Array(iv.byteLength + ct.byteLength);
-  encData.set(iv); encData.set(new Uint8Array(ct), iv.byteLength);
-  
-  // 메타데이터 전송
-  const metaEnc = await encryptPayload(sess, {
-    type:'file_start', id:fileId, name:file.name, size:encData.byteLength, fek:buf2b64(fekRaw)
-  });
-  sess.dc.send(JSON.stringify({type:'msg', ...metaEnc}));
-  addSystemMsg(`📤 ${file.name} (${formatBytes(encData.byteLength)}) 전송 중...`);
-  
-  // 청크 분할 전송
-  let offset = 0;
-  const sendChunk = async () => {
-    if (offset >= encData.byteLength) {
-      // 완료 메시지
-      const endEnc = await encryptPayload(sess, {type:'file_end', id:fileId});
-      sess.dc.send(JSON.stringify({type:'msg', ...endEnc}));
-      addSystemMsg(`📤 ${file.name} 전송 완료`);
-      return;
-    }
-    const end = Math.min(offset + CHUNK_SIZE, encData.byteLength);
-    sess.dc.send(encData.slice(offset, end).buffer);
-    offset = end;
-    setTimeout(sendChunk, 10);
-  };
-  sendChunk();
-}
-
-function handleFileStart(peerId, inner) {
-  const sess = sessions[peerId];
-  if (!sess) return;
-  sess.fileReceive = {
-    id: inner.id, name: inner.name, size: inner.size,
-    fek: b642buf(inner.fek), chunks: [], received: 0
-  };
-  addSystemMsg(`📥 ${inner.name} (${formatBytes(inner.size)}) 수신 중...`);
-}
-function handleBinaryChunk(peerId, buf) {
-  const sess = sessions[peerId];
-  if (!sess?.fileReceive) return;
-  sess.fileReceive.chunks.push(new Uint8Array(buf));
-  sess.fileReceive.received += buf.byteLength;
-  // 진행률 업데이트 가능
-}
-async function assembleFile(peerId) {
-  const sess = sessions[peerId];
-  if (!sess?.fileReceive) return;
-  const fr = sess.fileReceive;
-  const blob = new Blob(fr.chunks);
-  const iv = blob.slice(0, 12); const ct = blob.slice(12);
-  const key = await crypto.subtle.importKey('raw', fr.fek, 'AES-GCM', false, ['decrypt']);
-  const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv: await iv.arrayBuffer()}, key, await ct.arrayBuffer());
-  const decBlob = new Blob([plain]);
-  const url = URL.createObjectURL(decBlob);
-  addSystemMsg(`📎 <a href="${url}" download="${escapeHtml(fr.name)}" style="color:var(--accent);">${escapeHtml(fr.name)} 다운로드</a>`);
-  sess.fileReceive = null;
-  // 다운로드 후 URL 해제 (사용자가 클릭 후 일정 시간 뒤)
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
-
-/********************* 11. 타이핑, 이모지, 미디어 *********************/
-async function encryptTyping(sess, state) {
-  if (!sess.typingKey) return null;
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, sess.typingKey, str2buf(state));
-  return { iv: Array.from(new Uint8Array(iv)), ct: Array.from(new Uint8Array(ct)) };
-}
-async function decryptTyping(sess, data) {
-  const iv = new Uint8Array(data.iv), ct = new Uint8Array(data.ct);
-  const plain = await crypto.subtle.decrypt({name:'AES-GCM',iv}, sess.typingKey, ct);
-  return textDecoder.decode(plain);
-}
-function sendTyping(state) {
-  const sess = sessions[activePeerId];
-  if (sess?.typingDC && sess.typingDC.readyState==='open' && sess.typingKey) {
-    encryptTyping(sess, state?'1':'0').then(enc => enc && sess.typingDC.send(JSON.stringify(enc))).catch(()=>{});
-  }
-}
-document.getElementById('msgInput').addEventListener('input', () => {
-  sendTyping(true);
-  const sess = sessions[activePeerId];
-  if (sess) { clearTimeout(sess.typingTimer); sess.typingTimer = setTimeout(() => sendTyping(false), 1500); }
-});
-function sendEmoji(emoji) {
-  if (!activePeerId) return;
-  const sess = sessions[activePeerId]; if (!sess) return;
-  const msgId = genUUID();
-  if (!sess.dc || sess.dc.readyState!=='open' || !sess.rootKey || !sess.confirmed) {
-    loadOfflineQueue(activePeerId).then(q => { q.push({type:'emoji',content:emoji,id:msgId}); saveOfflineQueue(activePeerId, q); });
-    addSystemMsg('⏳ 오프라인 저장'); return;
-  }
-  encryptPayload(sess, {type:'emoji',content:emoji,id:msgId}).then(enc => {
-    sess.dc.send(JSON.stringify({type:'msg',...enc}));
-    appendEncryptedMessage(enc, activePeerId, 'me', msgId);
-  }).catch(() => addSystemMsg('전송 실패'));
-}
-function sendMedia(url) {
-  if (!activePeerId) return;
-  const sess = sessions[activePeerId]; if (!sess) return;
-  const msgId = genUUID();
-  if (!sess.dc || sess.dc.readyState!=='open' || !sess.rootKey || !sess.confirmed) {
-    loadOfflineQueue(activePeerId).then(q => { q.push({type:'media',url,id:msgId}); saveOfflineQueue(activePeerId, q); });
-    addSystemMsg('⏳ 오프라인 저장'); return;
-  }
-  encryptPayload(sess, {type:'media',url,id:msgId}).then(enc => {
-    sess.dc.send(JSON.stringify({type:'msg',...enc}));
-    appendEncryptedMessage(enc, activePeerId, 'me', msgId);
-  }).catch(() => addSystemMsg('전송 실패'));
-}
-
-/********************* 12. 삭제 전파 *********************/
-function setPendingDestroy(peerId) { localStorage.setItem(PENDING_DESTROY_PREFIX+peerId, '1'); }
-function clearPendingDestroy(peerId) { localStorage.removeItem(PENDING_DESTROY_PREFIX+peerId); }
-function hasPendingDestroy(peerId) { return !!localStorage.getItem(PENDING_DESTROY_PREFIX+peerId); }
-async function destroyActiveChat() { if (activePeerId) await destroyChat(activePeerId); }
-async function destroyChat(peerId) {
-  const sess = sessions[peerId];
-  if (!sess) { markDestroyed(peerId); goHome(); return; }
-  setPendingDestroy(peerId);
-  sess.destroyRetry = 0;
-  clearRevealedCanvases(peerId);
-  if (activePeerId===peerId) { document.getElementById('messages').innerHTML=''; goHome(); }
-  trySendDestroy(peerId);
-  setTimeout(() => { if (isDestroyed(peerId)||hasPendingDestroy(peerId)) location.replace('about:blank'); }, 5000);
-}
-function sendRawDestroy(peerId) {
-  const sess = sessions[peerId]; if (!sess) return false;
-  let sent = false;
-  const msg = JSON.stringify({type:'__destroy_req__',peerId,ts:Date.now()});
-  [sess.dc, sess.typingDC].forEach(ch => { if (ch&&ch.readyState==='open') try { ch.send(msg); sent=true; } catch(e){} });
-  return sent;
-}
-async function trySendDestroy(peerId) {
-  const sess = sessions[peerId];
-  if (!sess) { markDestroyed(peerId); return; }
-  if (isDestroyed(peerId)) return;
-  if (sess.destroyRetry >= 100) { markDestroyed(peerId); return; }
-  const rawSent = sendRawDestroy(peerId);
-  if (rawSent || (sess.rootKey && sess.confirmed && sess.dc && sess.dc.readyState==='open')) {
-    try {
-      if (!rawSent && sess.rootKey && sess.confirmed) {
-        const enc = await encryptPayload(sess, {type:'__destroy__', timestamp:Date.now(), id:genUUID()});
-        sess.dc.send(JSON.stringify({type:'msg',...enc}));
-      }
-      clearPendingDestroy(peerId); markDestroyed(peerId);
-      if (activePeerId===peerId) { goHome(); sess.pc.close(); delete sessions[peerId]; }
-      renderContactList();
-      return;
-    } catch(e) {}
-  }
-  const delay = Math.min(1000*Math.pow(2,sess.destroyRetry), 60000);
-  sess.destroyRetry++;
-  setTimeout(() => { if (!isDestroyed(peerId) && hasPendingDestroy(peerId)) trySendDestroy(peerId); }, delay);
-}
-function sendClearRevealed(peerId) {
-  const sess = sessions[peerId]; if (!sess) return;
-  [sess.dc, sess.typingDC].forEach(ch => { if (ch&&ch.readyState==='open') ch.send(JSON.stringify({type:'__clear_revealed__'})); });
-}
-
-/********************* 13. 페이지 이탈 & 자가 파괴 *********************/
-let inactivityTimer;
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => { destroyAllSessions(); location.replace('about:blank'); }, 300000);
-}
-['pointerdown','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetInactivityTimer));
-resetInactivityTimer();
-window.addEventListener('beforeunload', () => { if(activePeerId) { sendClearRevealed(activePeerId); clearRevealedCanvases(activePeerId); } });
-window.addEventListener('pagehide', () => { if(activePeerId) { sendClearRevealed(activePeerId); clearRevealedCanvases(activePeerId); } });
-window.addEventListener('visibilitychange', () => {
-  if (document.visibilityState==='hidden' && activePeerId) { clearRevealedCanvases(activePeerId); sendClearRevealed(activePeerId); }
-});
-
-/********************* 14. URL 해시 처리 *********************/
-async function checkHash() {
-  const h = location.hash.substring(1); if (!h) return;
-  const p = new URLSearchParams(h);
-  if (p.has('offer') && p.has('peer')) {
-    const peerId = p.get('peer'); if (isDestroyed(peerId)||hasPendingDestroy(peerId)) return;
-    const offer = decodeSDP(p.get('offer'));
-    if (!getContacts().find(c=>c.id===peerId)) addContact(peerId, '상대방');
-    activePeerId = peerId; const sess = getOrCreateSession(peerId); sess.isOfferer = false;
-    initPC(peerId); await sess.pc.setRemoteDescription(offer);
-    const ans = await sess.pc.createAnswer(); await sess.pc.setLocalDescription(ans); await waitIce(sess.pc);
-    document.getElementById('answerModalLink').textContent = location.origin+location.pathname+'#answer='+encodeSDP(sess.pc.localDescription)+'&peer='+peerId;
-    document.getElementById('answerModal').classList.remove('hidden');
-    showView('chatScreen'); document.getElementById('chatTitle').textContent = '상대방';
-    document.getElementById('passwordPrompt').style.display='block';
-    renderContactList();
-  } else if (p.has('answer') && p.has('peer')) {
-    const peerId = p.get('peer'); if (isDestroyed(peerId)||hasPendingDestroy(peerId)) return;
-    const answer = decodeSDP(p.get('answer'));
-    if (!getContacts().find(c=>c.id===peerId)) addContact(peerId, '상대방');
-    let sess = sessions[peerId];
-    if (!sess || !sess.pc) { sess = getOrCreateSession(peerId); sess.isOfferer=true; initPC(peerId); sess.dc=sess.pc.createDataChannel('chat',{ordered:true}); setupDC(peerId); }
-    await sess.pc.setRemoteDescription(answer);
-    activePeerId = peerId; showView('chatScreen');
-    document.getElementById('chatTitle').textContent = getContacts().find(c=>c.id===peerId)?.name||'채팅';
-    document.getElementById('passwordPrompt').style.display='block';
-    renderContactList();
-  }
-}
-window.addEventListener('hashchange', checkHash);
-
-/********************* 15. 이모지/미디어 피커 *********************/
-const EMOJI_LIST = ['😀','😂','🥰','😎','🤔','👍','❤️','🔥','🎉','💯','😢','😡','🥺','🤯','✨','🍕','🚀','💻','📱','🎵'];
-function buildEmojiPicker() { document.getElementById('emojiGrid').innerHTML = EMOJI_LIST.map(e => `<span class="emoji-item" onclick="sendEmoji('${e}')">${e}</span>`).join(''); }
-function togglePicker(type) {
-  const picker = document.getElementById(type+'Picker');
-  const isActive = picker.classList.contains('active');
-  document.querySelectorAll('.picker-overlay').forEach(p => p.classList.remove('active'));
-  if (!isActive) picker.classList.add('active');
-}
-function closeAllPickers() { document.querySelectorAll('.picker-overlay').forEach(p => p.classList.remove('active')); }
-function addMediaUrl() {
-  const url = document.getElementById('mediaSearch')?.value?.trim(); if (!url) return;
-  let fav = JSON.parse(localStorage.getItem('p2p_media_fav')||'[]');
-  if (!fav.includes(url)) { fav.push(url); localStorage.setItem('p2p_media_fav', JSON.stringify(fav)); }
-  document.getElementById('mediaSearch').value = ''; filterMedia(); sendMedia(url);
-}
-async function uploadSticker(files) {
-  if (!files?.length) return;
-  for (const f of files) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const url = e.target.result;
-      let fav = JSON.parse(localStorage.getItem('p2p_media_fav')||'[]');
-      fav.push(url); localStorage.setItem('p2p_media_fav', JSON.stringify(fav));
-      filterMedia(); sendMedia(url);
-    };
-    reader.readAsDataURL(f);
-  }
-}
-function filterMedia() {
-  const q = document.getElementById('mediaSearch')?.value?.toLowerCase()||'';
-  const fav = JSON.parse(localStorage.getItem('p2p_media_fav')||'[]');
-  document.getElementById('mediaGrid').innerHTML = fav.filter(u => u.toLowerCase().includes(q)).map(u => `<div class="picker-item" onclick="sendMedia('${u}')"><img src="${u}" alt="media"></div>`).join('');
-}
-
-/********************* 16. 유틸: 복사 *********************/
-function copyTextById(id) {
-  const el = document.getElementById(id);
-  const text = el.tagName==='INPUT'||el.tagName==='TEXTAREA'?el.value:el.textContent;
-  navigator.clipboard.writeText(text).then(()=>alert('복사됨')).catch(()=>prompt('복사:',text));
-}
-
-/********************* 17. 초기화 *********************/
-buildEmojiPicker();
-renderContactList();
-checkHash();
-showView('simpleMode');
+// 초기화
+buildEmojiPicker();renderContactList();checkHash();showView('simpleMode');
 
 // roundRect 폴리필
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    if (typeof r === 'number') r = {tl: r, tr: r, br: r, bl: r};
-    this.beginPath();
-    this.moveTo(x + r.tl, y);
-    this.lineTo(x + w - r.tr, y);
-    this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
-    this.lineTo(x + w, y + h - r.br);
-    this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
-    this.lineTo(x + r.bl, y + h);
-    this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
-    this.lineTo(x, y + r.tl);
-    this.quadraticCurveTo(x, y, x + r.tl, y);
-    this.closePath();
-  };
-}
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r={tl:r,tr:r,br:r,bl:r};this.beginPath();this.moveTo(x+r.tl,y);this.lineTo(x+w-r.tr,y);this.quadraticCurveTo(x+w,y,x+w,y+r.tr);this.lineTo(x+w,y+h-r.br);this.quadraticCurveTo(x+w,y+h,x+w-r.br,y+h);this.lineTo(x+r.bl,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r.bl);this.lineTo(x,y+r.tl);this.quadraticCurveTo(x,y,x+r.tl,y);this.closePath()}}
 </script>
 </body>
 </html>
