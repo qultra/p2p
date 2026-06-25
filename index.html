@@ -249,6 +249,49 @@ const genUUID = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4
 const escapeHtml = s => String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
 const formatBytes = b => b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':b<1073741824?(b/1048576).toFixed(1)+' MB':(b/1073741824).toFixed(1)+' GB';
 function updateConn(ok) { document.getElementById('connDot').className = 'dot '+(ok?'on':'off'); document.getElementById('connLabel').textContent = ok?'연결됨':'오프라인'; }
+function copyTextById(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // textarea나 input이면 value, 일반 요소면 textContent
+  const text = el.value || el.textContent || '';
+
+  // 방법 1: 최신 비동기 clipboard API (HTTPS/localhost에서 정상 동작)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✅ 링크가 복사되었습니다!');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+
+  // 방법 2: 구식 execCommand 방식 (일부 제한 환경에서 동작)
+  function fallbackCopy(str) {
+    const textarea = document.createElement('textarea');
+    textarea.value = str;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert('✅ 링크가 복사되었습니다!');
+      } else {
+        alert('❌ 복사 실패 – 링크를 직접 선택해 복사해주세요.');
+      }
+    } catch (err) {
+      alert('❌ 복사 실패 – 수동 복사가 필요합니다.');
+    }
+
+    document.body.removeChild(textarea);
+  }
+}
 
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
