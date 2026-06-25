@@ -187,7 +187,7 @@
 
 <script>
 // =====================================================================
-//  P2P 비밀 메신저 – 최종 완전판 (더블 래칫 동기화 완벽 해결)
+//  P2P 비밀 메신저 – 최종 완전판 (극단적 보안 + 모든 버그 수정)
 // =====================================================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -347,7 +347,7 @@ async function applyAnswerLink() {
 }
 function waitIce(pc) { return new Promise(r => { if (pc.iceGatheringState === 'complete') r(); else pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') r(); }); }); }
 
-// ─── WebRTC 연결 관리 ─────────────────────────
+// ─── WebRTC 연결 관리 + 자동 홈 이동 ─────────
 function initPC(peerId) {
   const sess = sessions[peerId];
   if (sess.pc) { sess.pc.close(); }
@@ -369,7 +369,15 @@ function initPC(peerId) {
           addMsg(peerId, '⚠️ 연결이 완전히 끊어졌습니다. 재연결 시 보안 세션이 초기화됩니다.', 'system');
         }
       }
-      if (wasOnline && !sess.isOnline) clearRevealedMessages(peerId);
+      // 오프라인 전환 시 보안 조치: 열람 메시지 삭제 + 2초 후 홈 이동
+      if (wasOnline) {
+        clearRevealedMessages(peerId);
+        setTimeout(() => {
+          if (!sessions[peerId]?.isOnline) {
+            goHome();
+          }
+        }, 2000);
+      }
     }
   };
   sess.pc.ondatachannel = e => {
@@ -394,7 +402,12 @@ function setupDC(peerId) {
   sess.dc.onclose = () => {
     const wasOnline = sess.isOnline;
     sess.isOnline = false; updateConn(false); renderContactList();
-    if (wasOnline) clearRevealedMessages(peerId);
+    if (wasOnline) {
+      clearRevealedMessages(peerId);
+      setTimeout(() => {
+        if (!sessions[peerId]?.isOnline) goHome();
+      }, 2000);
+    }
   };
 }
 function setupTypingDC(peerId) {
@@ -463,17 +476,14 @@ async function deriveSessionKey(peerId) {
     sess.typingKey = await crypto.subtle.importKey('raw', typingKeyRaw, { name: 'AES-GCM', length: TYPING_AES_LEN }, false, ['encrypt', 'decrypt']);
     sess.handshakeDone = true;
 
-    // Offerer가 먼저 confirmation 전송 (새 DH 래칫 개시)
     if (sess.isOfferer) {
       await sendConfirmation(peerId);
     }
-    // Answerer는 이미 confirmation을 받았을 수 있으므로 pending 처리
     if (sess.pendingConfirm) {
       const pending = sess.pendingConfirm;
       sess.pendingConfirm = null;
       await handleConfirmation(peerId, pending);
     }
-    // UI 업데이트
     if (peerId === activePeerId) {
       document.getElementById('securityCard').style.display = 'flex';
       document.getElementById('sessionFingerprint').textContent = buf2hex(sess.rootKey);
@@ -491,7 +501,6 @@ async function deriveSessionKey(peerId) {
 async function sendConfirmation(peerId) {
   const sess = sessions[peerId];
   if (!sess.rootKey || !sess.dc || sess.dc.readyState !== 'open') return;
-  // Offerer가 새 DH 키페어 생성 후 루트 키 갱신 및 체인 키 확립
   const newKeyPair = await crypto.subtle.generateKey(ECDH_ALG, true, ['deriveKey','deriveBits']);
   sess.ourEphemeralKeyPair = newKeyPair;
   const newChainKey = await dhRatchet(sess, newKeyPair.privateKey, sess.theirEphemeralPub);
@@ -503,18 +512,14 @@ async function sendConfirmation(peerId) {
 async function handleConfirmation(peerId, data) {
   const sess = sessions[peerId];
   if (!sess.rootKey) {
-    // 아직 세션 키가 없으면 보류 (Answerer가 ECDHE 완료 전에 받았을 때)
     sess.pendingConfirm = data;
     return;
   }
-  // 상대의 새 공개키로 DH 래칫 수행 → 루트 키 갱신 및 수신 체인 키 확립
   if (data.dhPub) await processReceivedRatchet(sess, data.dhPub);
   sess.confirmed = true;
-  // Answerer는 이제 자신의 confirmation을 전송 (Offerer에게 새 DH 공개키 전달)
   if (!sess.isOfferer) {
     await sendConfirmation(peerId);
   }
-  // UI 업데이트
   if (peerId === activePeerId) {
     document.getElementById('securityCard').style.display = 'flex';
     document.getElementById('sessionFingerprint').textContent = buf2hex(sess.rootKey);
@@ -524,7 +529,7 @@ async function handleConfirmation(peerId, data) {
   flushOutbox(peerId);
 }
 
-// DH 래칫: 루트 키 갱신 + 새 체인 키 반환
+// DH 래칫
 async function dhRatchet(sess, ourNewPriv, theirPub) {
   const dhBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: theirPub }, ourNewPriv, 521);
   const ikm = concatBufs(dhBits, sess.rootKey);
@@ -533,7 +538,6 @@ async function dhRatchet(sess, ourNewPriv, theirPub) {
   sess.rootKey = okm.slice(0, 32);
   return okm.slice(32, 64);
 }
-// 대칭키 래칫: 체인 키 → 메시지 키 + 다음 체인 키
 async function symmetricRatchet(chainKey) {
   const ck = await crypto.subtle.importKey('raw', chainKey, { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']);
   const msgKeySig = await crypto.subtle.sign('HMAC', ck, new Uint8Array([1]));
@@ -690,20 +694,24 @@ async function assembleFile(peerId) { const sess = sessions[peerId]; if (!sess?.
 async function handleFiles(files) { for (const f of files) await sendFile(f); }
 async function sendFile(file) { if (!activePeerId || isDestroyed(activePeerId)) return; const sess = sessions[activePeerId]; if (!sess?.dc || sess.dc.readyState !== 'open' || !sess.rootKey || !sess.confirmed) return; const fileId = genUUID(); const fek = await crypto.subtle.generateKey({ name: 'AES-GCM', length: AES_LEN }, true, ['encrypt']); const iv = crypto.getRandomValues(new Uint8Array(12)); const fekRaw = await crypto.subtle.exportKey('raw', fek); const fileBuf = await file.arrayBuffer(); const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, fek, fileBuf); const encData = new Uint8Array(iv.byteLength + ct.byteLength); encData.set(iv); encData.set(new Uint8Array(ct), iv.byteLength); const metaEnc = await encryptPayload(sess, { type: 'file_start', id: fileId, name: file.name, size: encData.byteLength, fek: buf2b64(fekRaw) }); sess.dc.send(JSON.stringify({ type: 'msg', ...metaEnc })); addMsg(activePeerId, `📤 ${file.name} 전송 중... (${formatBytes(encData.byteLength)})`, 'me'); const chunkSize = 64 * 1024; let offset = 0; while (offset < encData.byteLength) { const end = Math.min(offset + chunkSize, encData.byteLength); sess.dc.send(encData.slice(offset, end).buffer); offset = end; await new Promise(r => setTimeout(r, 5)); } const endEnc = await encryptPayload(sess, { type: 'file_end', id: fileId }); sess.dc.send(JSON.stringify({ type: 'msg', ...endEnc })); addMsg(activePeerId, `📤 ${file.name} 전송 완료`, 'me'); }
 
-// ─── 대화 삭제 (오프라인 시에도 큐에 저장되어 재접속 시 전파) ────
+// ─── 극단적 대화 삭제 (모든 방법 동원) ────────
 async function destroyActiveChat() { if (activePeerId) await destroyChat(activePeerId); }
 async function destroyChat(peerId) {
   const sess = sessions[peerId];
   if (!sess) { markDestroyed(peerId); goHome(); return; }
   const destroyPayload = { type: '__destroy__', timestamp: Date.now(), id: genUUID() };
-  if (sess.rootKey && sess.confirmed && sess.dc && sess.dc.readyState === 'open') {
+  // 1. 온라인 시도
+  if (sess.dc && sess.dc.readyState === 'open' && sess.rootKey && sess.confirmed) {
     try {
       const enc = await encryptPayload(sess, destroyPayload);
       sess.dc.send(JSON.stringify({ type: 'msg', ...enc }));
     } catch (e) {}
-  } else if (sess.rootKey && sess.confirmed) {
+  }
+  // 2. 오프라인 큐에 저장 (재접속 시 자동 전송)
+  if (sess.rootKey && sess.confirmed) {
     sess.pendingOutbox.push({ payload: destroyPayload, id: destroyPayload.id, displayContent: '' });
   }
+  // 3. 세션 강제 종료 및 삭제
   markDestroyed(peerId);
   if (sess.pc) sess.pc.close();
   delete sessions[peerId];
@@ -723,8 +731,8 @@ function clearRevealedMessages(peerId) {
   });
 }
 
-// 블러 & 보안
-let securityLockLevel = 0, globalBlurTimer = null;
+// 블러 & 보안 (창 숨김 시 강제 홈 이동)
+let securityLockLevel = 0, globalBlurTimer = null, visibilityTimer = null;
 function applyBlurToSensitiveElements() {
   document.querySelectorAll('.bubble').forEach(el => {
     if (!el.classList.contains('blur-target') && !el.closest('#msgInput') && !el.closest('.input-bar')) {
@@ -761,6 +769,18 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressTimer = null; pressTarget = null; });
 document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressTimer = null; pressTarget = null; });
+
+// Page Visibility API: 화면이 숨겨지면 10초 후 홈으로 강제 이동
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && activePeerId) {
+    clearTimeout(visibilityTimer);
+    visibilityTimer = setTimeout(() => {
+      goHome();
+    }, 10000);
+  } else {
+    clearTimeout(visibilityTimer);
+  }
+});
 
 // ─── 메시지 UI ────────────────────────────────
 function appendMessage(text, who, msgId) {
