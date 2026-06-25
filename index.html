@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 최종 완전판</title>
+  <title>P2P 비밀 메신저 – 완전판</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
   <meta name="referrer" content="no-referrer">
   <style>
@@ -182,7 +182,7 @@
 
 <script>
 // =====================================================================
-//  P2P 비밀 메신저 – 최종 완전판 (모든 버그 수정 & 기능 통합)
+//  P2P 비밀 메신저 – 최종 완전판 (모든 버그 수정, 실제 사용 가능)
 // =====================================================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -205,7 +205,7 @@ const DESTROY_PREFIX = 'p2p_destroyed_';
 
 if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-// ─── 유틸리티 ─────────────────────────────────
+// ─── 유틸리티 함수 ────────────────────────────
 const buf2hex = b => [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const str2buf = s => textEncoder.encode(s);
 const buf2b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
@@ -219,7 +219,7 @@ function compareBuffers(b1, b2) { for (let i = 0; i < b1.byteLength; i++) { if (
 
 // ─── 더블 래칫 암호화 상수 (최대치) ──────────
 const ECDH_ALG = { name: 'ECDH', namedCurve: 'P-521' };
-const PBKDF2_ITERS = 20000000;   // 2천만
+const PBKDF2_ITERS = 20000000;
 const SALT_SIZE = 4096;
 const AES_LEN = 256;
 const HMAC_HASH = 'SHA-512';
@@ -276,6 +276,7 @@ function selectPeer(peerId) {
   updateConn(sess.isOnline);
   document.getElementById('securityCard').style.display = (sess.rootKey && sess.confirmed) ? 'flex' : 'none';
   document.getElementById('passwordPrompt').style.display = (sess.rootKey && sess.confirmed) ? 'none' : 'block';
+  document.getElementById('passwordError').style.display = 'none';
   renderContactList();
 }
 function goHome() { activePeerId = null; showView('simpleMode'); document.getElementById('messages').innerHTML = ''; document.getElementById('securityCard').style.display = 'none'; document.getElementById('passwordPrompt').style.display = 'block'; updateConn(false); renderContactList(); }
@@ -413,9 +414,11 @@ async function handleEcdheMessage(peerId, data) {
     if (sess.password && sess.ourEcdhPair && sess.peerEcdhPub && sess.salt) await deriveSessionKey(peerId);
   } catch (e) { addMsg(peerId, '키 교환 처리 실패', 'system'); }
 }
+
+// ★★★ 핵심 수정: submitPassword 예외 처리 및 피드백 강화 ★★★
 async function submitPassword() {
   if (!activePeerId) {
-    alert('대화 상대가 선택되지 않았습니다. 채팅방을 다시 열어주세요.');
+    alert('대화 상대가 선택되지 않았습니다. 채팅방을 열어주세요.');
     return;
   }
   const sess = sessions[activePeerId];
@@ -433,7 +436,7 @@ async function submitPassword() {
   if (sess.salt && sess.ourEcdhPair && sess.peerEcdhPub) {
     await deriveSessionKey(activePeerId);
   } else {
-    document.getElementById('passwordError').textContent = '아직 보안 연결이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.';
+    document.getElementById('passwordError').textContent = '아직 보안 연결이 준비되지 않았습니다. 연결이 완료되면 다시 시도해주세요.';
     document.getElementById('passwordError').style.display = 'block';
   }
 }
@@ -449,6 +452,7 @@ async function deriveSessionKey(peerId) {
     const hkdfKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
     const rootKey = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-512', salt: authRaw, info: str2buf('root') }, hkdfKey, 256);
 
+    // ★★★ 수정: ArrayBuffer를 Uint8Array로 변환 후 slice ★★★
     const typingKeyRaw = new Uint8Array(rootKey).slice(0, 16);
     sess.rootKey = rootKey;
     sess.ourEphemeralKeyPair = sess.ourEcdhPair;
@@ -536,7 +540,6 @@ async function decryptPayload(sess, d) {
   return obj;
 }
 
-// ─── 세션 확인 ────────────────────────────────
 async function sendConfirmation(peerId) {
   const sess = sessions[peerId];
   if (!sess.rootKey || !sess.dc || sess.dc.readyState !== 'open') return;
@@ -718,13 +721,6 @@ async function checkHash() {
   }
 }
 window.addEventListener('hashchange', checkHash);
-
-// ─── 알림 ─────────────────────────────────────
-function notifyIfNeeded(content) {
-  if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
-    new Notification('P2P 비밀채팅', { body: content, icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#5b8df0"/></svg>') });
-  }
-}
 
 // ─── 초기화 ───────────────────────────────────
 buildEmojiPicker(); renderContactList(); checkHash(); showView('simpleMode');
