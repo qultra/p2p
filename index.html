@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 극한 보안 완전판</title>
+  <title>P2P 비밀 메신저 – 최종 완전 극한 보안</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
   <meta name="referrer" content="no-referrer">
   <style>
@@ -182,7 +182,7 @@
 
 <script>
 // =====================================================================
-//  P2P 비밀 메신저 – 극한 보안 완전판 (모든 문제 해결)
+//  P2P 비밀 메신저 – 완전판 (오프라인 복구, 강제 삭제, 극한 보안)
 // =====================================================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -205,7 +205,7 @@ const DESTROY_PREFIX = 'p2p_destroyed_';
 
 if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-// 유틸리티
+// 유틸
 const buf2hex = b => [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const str2buf = s => textEncoder.encode(s);
 const buf2b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
@@ -217,7 +217,7 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<
 function updateConn(ok) { document.getElementById('connDot').className = 'dot ' + (ok ? 'on' : 'off'); document.getElementById('connLabel').textContent = ok ? '연결됨' : '오프라인'; }
 function compareBuffers(b1, b2) { for (let i = 0; i < b1.byteLength; i++) { if (b1[i] < b2[i]) return -1; if (b1[i] > b2[i]) return 1; } return 0; }
 
-// 암호화 상수
+// 암호화 파라미터
 const ECDH_ALG = { name: 'ECDH', namedCurve: 'P-521' };
 const PBKDF2_ITERS = 20000000;
 const SALT_SIZE = 4096;
@@ -287,7 +287,7 @@ function selectPeer(peerId) {
 }
 function goHome() { activePeerId = null; showView('simpleMode'); document.getElementById('messages').innerHTML = ''; document.getElementById('securityCard').style.display = 'none'; document.getElementById('passwordPrompt').style.display = 'block'; updateConn(false); renderContactList(); }
 
-// 모달
+// 모달 및 연결 패널 (이전과 동일)
 function showNameModal() { document.getElementById('nameModal').classList.remove('hidden'); document.getElementById('peerNameInput').focus(); }
 function closeNameModal() { document.getElementById('nameModal').classList.add('hidden'); }
 function confirmNewChat() {
@@ -340,7 +340,7 @@ async function applyAnswerLink() {
 }
 function waitIce(pc) { return new Promise(r => { if (pc.iceGatheringState === 'complete') r(); else pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') r(); }); }); }
 
-// WebRTC 연결
+// WebRTC 연결 (개선)
 function initPC(peerId) {
   const sess = sessions[peerId];
   if (sess.pc) { sess.pc.close(); }
@@ -348,31 +348,23 @@ function initPC(peerId) {
   sess.pc.oniceconnectionstatechange = () => {
     const state = sess.pc.iceConnectionState;
     if (state === 'connected' || state === 'completed') {
-      const wasOffline = !sess.isOnline;
       sess.isOnline = true; updateConn(true); renderContactList();
       sess.reconnectAttempts = 0;
-      if (wasOffline) {
-        // 오프라인에서 다시 연결되었으므로, 열람했던 메시지 모두 제거
-        clearRevealedMessages(peerId);
-      }
       if (sess.pendingDestroy) trySendDestroy(peerId);
-    } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
-      const wasOnline = sess.isOnline;
+    } else if (state === 'disconnected') {
       sess.isOnline = false; updateConn(false);
-      if (wasOnline) {
-        // 연결이 끊기면 상대에게 열람 메시지 삭제 명령 전송 + 자신의 화면에서도 삭제
-        sendClearRevealed(peerId);
-        clearRevealedMessages(peerId);
+      // 일시적 연결 끊김 → 재연결 시도 (세션 유지)
+    } else if (state === 'failed') {
+      sess.isOnline = false; updateConn(false);
+      if (sess.reconnectAttempts < 3) {
+        sess.reconnectAttempts++;
+        setTimeout(() => { if (sess.pc && sess.pc.iceConnectionState === 'failed') try { sess.pc.restartIce(); } catch (e) {} }, 2000);
+      } else {
+        sess.handshakeDone = false; sess.rootKey = null; sess.sendChainKey = null; sess.recvChainKey = null; sess.confirmed = false;
+        addMsg(peerId, '⚠️ 연결이 완전히 끊어졌습니다. 재연결 시 보안 세션이 초기화됩니다.', 'system');
       }
-      if (state === 'failed') {
-        if (sess.reconnectAttempts < 3) {
-          sess.reconnectAttempts++;
-          setTimeout(() => { if (sess.pc && sess.pc.iceConnectionState === 'failed') try { sess.pc.restartIce(); } catch (e) {} }, 2000);
-        } else {
-          sess.handshakeDone = false; sess.rootKey = null; sess.sendChainKey = null; sess.recvChainKey = null; sess.confirmed = false;
-          addMsg(peerId, '⚠️ 연결이 완전히 끊어졌습니다. 재연결 시 보안 세션이 초기화됩니다.', 'system');
-        }
-      }
+    } else if (state === 'closed') {
+      sess.isOnline = false; updateConn(false);
     }
   };
   sess.pc.ondatachannel = e => {
@@ -386,22 +378,20 @@ function setupDC(peerId) {
     if (isDestroyed(peerId)) return;
     sess.isOnline = true; updateConn(true); renderContactList();
     if (sess.pendingDestroy) { trySendDestroy(peerId); return; }
+    // 세션 초기화는 failed 상태에서만 하므로, 여기서는 handshakeDone이 true여도 유지
     if (sess.handshakeDone) {
-      addMsg(peerId, '🔄 연결이 복구되었습니다. 보안 세션을 재수립합니다.', 'system');
-      sess.handshakeDone = false; sess.rootKey = null; sess.sendChainKey = null; sess.recvChainKey = null; sess.typingKey = null; sess.confirmed = false;
-      startEcdhExchange(peerId);
+      // 이미 키가 있으면 아웃박스 플러시만 수행
+      flushOutbox(peerId);
     } else if (!sess.handshakeDone && !sess.rootKey) {
       if (!sess.ourEcdhPair) startEcdhExchange(peerId);
     }
   };
   sess.dc.onmessage = e => onMsg(peerId, e);
   sess.dc.onclose = () => {
-    const wasOnline = sess.isOnline;
     sess.isOnline = false; updateConn(false); renderContactList();
-    if (wasOnline) {
-      sendClearRevealed(peerId);
-      clearRevealedMessages(peerId);
-    }
+    // 오프라인 시 열람 메시지 삭제 명령 전송 시도
+    sendClearRevealed(peerId);
+    clearRevealedMessages(peerId);
   };
 }
 function setupTypingDC(peerId) {
@@ -413,17 +403,13 @@ function setupTypingDC(peerId) {
   };
 }
 
-// 오프라인 시 열람 메시지 삭제 명령 전송
 function sendClearRevealed(peerId) {
   const sess = sessions[peerId];
   if (!sess || !sess.dc || sess.dc.readyState !== 'open') return;
   try { sess.dc.send(JSON.stringify({ type: '__clear_revealed__' })); } catch (e) {}
-  if (sess.typingDC && sess.typingDC.readyState === 'open') {
-    try { sess.typingDC.send(JSON.stringify({ type: '__clear_revealed__' })); } catch (e) {}
-  }
 }
 
-// ============== 더블 래칫 (동기화 보장) ==============
+// 더블 래칫 (동기화 보장)
 async function startEcdhExchange(peerId) {
   const sess = sessions[peerId];
   try {
@@ -480,9 +466,7 @@ async function deriveSessionKey(peerId) {
     sess.typingKey = await crypto.subtle.importKey('raw', typingKeyRaw, { name: 'AES-GCM', length: TYPING_AES_LEN }, false, ['encrypt', 'decrypt']);
     sess.handshakeDone = true;
 
-    if (sess.isOfferer) {
-      await sendConfirmation(peerId);
-    }
+    if (sess.isOfferer) await sendConfirmation(peerId);
     if (sess.pendingConfirm) {
       const pending = sess.pendingConfirm;
       sess.pendingConfirm = null;
@@ -512,7 +496,6 @@ async function sendConfirmation(peerId) {
   const pubRaw = await crypto.subtle.exportKey('raw', newKeyPair.publicKey);
   sess.dc.send(JSON.stringify({ type: '__confirm__', dhPub: buf2b64(pubRaw) }));
 }
-
 async function handleConfirmation(peerId, data) {
   const sess = sessions[peerId];
   if (!sess.rootKey) { sess.pendingConfirm = data; return; }
@@ -630,7 +613,7 @@ function onMsg(peerId, e) {
     if (d.type === '__ecdhe__') { handleEcdheMessage(peerId, d); return; }
     if (d.type === '__confirm__') { handleConfirmation(peerId, d); return; }
     if (d.type === '__clear_revealed__') { clearRevealedMessages(peerId); return; }
-    if (d.type === '__destroy_force__') { markDestroyed(peerId); goHome(); return; }
+    if (d.type === '__destroy__') { markDestroyed(peerId); goHome(); return; }
     if (d.type === 'msg') {
       if (!sess.rootKey || !sess.confirmed) { addEncryptedMessage(peerId, d); return; }
       decryptPayload(sess, d).then(inner => {
@@ -674,60 +657,49 @@ async function decryptTyping(sess, data) { if (!sess.typingKey) throw new Error(
 function sendTyping(state) { const sess = sessions[activePeerId]; if (sess?.typingDC && sess.typingDC.readyState === 'open' && sess.typingKey) { encryptTyping(sess, state ? '1' : '0').then(enc => enc && sess.typingDC.send(JSON.stringify(enc))).catch(() => {}); } }
 document.getElementById('msgInput').addEventListener('input', () => { sendTyping(true); const sess = sessions[activePeerId]; if (sess) { clearTimeout(sess.typingTimer); sess.typingTimer = setTimeout(() => sendTyping(false), 1500); } });
 
-// ─── 극한 삭제: 모든 수단 동원 ────────────────
+// ★ 강제 전체 삭제 (모든 채널로 전송, 암호화 없이도 전송)
 async function destroyActiveChat() { if (activePeerId) await destroyChat(activePeerId); }
 async function destroyChat(peerId) {
   const sess = sessions[peerId];
   if (!sess) { markDestroyed(peerId); goHome(); return; }
   sess.pendingDestroy = true;
   sess.destroyRetry = 0;
-  await trySendDestroy(peerId);
+  // 암호화된 채널로 삭제 명령 전송 시도 (키 있으면)
+  if (sess.rootKey && sess.confirmed && sess.dc && sess.dc.readyState === 'open') {
+    try {
+      const destroyPayload = { type: '__destroy__', timestamp: Date.now(), id: genUUID() };
+      const enc = await encryptPayload(sess, destroyPayload);
+      sess.dc.send(JSON.stringify({ type: 'msg', ...enc }));
+    } catch (e) {}
+  }
+  // 암호화 없이도 전송 시도 (타이핑 채널, 일반 텍스트)
+  const sendPlainDestroy = (channel) => {
+    if (channel && channel.readyState === 'open') {
+      try { channel.send(JSON.stringify({ type: '__destroy__', timestamp: Date.now() })); } catch (e) {}
+    }
+  };
+  sendPlainDestroy(sess.dc);
+  sendPlainDestroy(sess.typingDC);
+  // 즉시 마킹 및 UI 정리
   clearRevealedMessages(peerId);
   markDestroyed(peerId);
   if (activePeerId === peerId) goHome();
+  // 지연 후 세션 정리 (재연결 시 재전송 시도 없이 바로 삭제되도록)
   setTimeout(() => {
-    if (sessions[peerId]?.pendingDestroy) {
+    if (sessions[peerId]) {
       if (sessions[peerId].pc) sessions[peerId].pc.close();
       delete sessions[peerId];
-      renderContactList();
     }
-  }, 5000);
+    renderContactList();
+  }, 3000);
 }
-
 async function trySendDestroy(peerId) {
   const sess = sessions[peerId];
   if (!sess || !sess.pendingDestroy) return;
-  const destroyPayload = { type: '__destroy__', timestamp: Date.now(), id: genUUID() };
-  let sent = false;
-  const sendEncrypted = async (channel) => {
-    if (channel && channel.readyState === 'open' && sess.rootKey && sess.confirmed) {
-      try {
-        const enc = await encryptPayload(sess, destroyPayload);
-        channel.send(JSON.stringify({ type: 'msg', ...enc }));
-        sent = true;
-      } catch (e) {}
-    }
-  };
-  await sendEncrypted(sess.dc);
-  if (!sent) await sendEncrypted(sess.typingDC);
-  if (!sent) {
-    // 최후 수단: 평문 강제 삭제 명령 (WebRTC의 DTLS 암호화로 전송됨)
-    if (sess.dc && sess.dc.readyState === 'open') {
-      try { sess.dc.send(JSON.stringify({ type: '__destroy_force__' })); sent = true; } catch (e) {}
-    }
-    if (!sent && sess.typingDC && sess.typingDC.readyState === 'open') {
-      try { sess.typingDC.send(JSON.stringify({ type: '__destroy_force__' })); sent = true; } catch (e) {}
-    }
-  }
-  if (!sent && sess.destroyRetry < 10) {
-    sess.destroyRetry++;
-    setTimeout(() => trySendDestroy(peerId), 500);
-  } else if (!sent) {
-    sess.pendingDestroy = false; // 포기
-  }
+  // 이미 마킹되었으므로 추가 전송 불필요
 }
 
-// ─── 오프라인 시 열람 메시지 자동 삭제 ─────────
+// 열람 메시지 삭제
 function clearRevealedMessages(peerId) {
   if (peerId !== activePeerId) return;
   const messagesDiv = document.getElementById('messages');
@@ -754,12 +726,6 @@ function lockAllBlurs(d = 15000) {
   clearTimeout(globalBlurTimer);
   globalBlurTimer = setTimeout(() => document.querySelectorAll('.blur-target.locked').forEach(el => el.classList.remove('locked')), d);
 }
-function triggerSecurityLock(l = 1) {
-  securityLockLevel = Math.max(securityLockLevel, l);
-  if (securityLockLevel >= 2) lockAllBlurs(20000);
-  else if (securityLockLevel >= 1) lockAllBlurs(8000);
-  setTimeout(() => { securityLockLevel = Math.max(0, securityLockLevel - 1); }, 30000);
-}
 let pressTimer = null, pressTarget = null;
 document.addEventListener('pointerdown', e => {
   if (!activePeerId || isDestroyed(activePeerId)) return;
@@ -777,8 +743,6 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressTimer = null; pressTarget = null; });
 document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressTimer = null; pressTarget = null; });
-
-// 페이지 숨김/종료 시 자동 삭제
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && activePeerId && sessions[activePeerId]?.isOnline) {
     clearRevealedMessages(activePeerId);
@@ -812,7 +776,7 @@ async function assembleFile(peerId) { const sess = sessions[peerId]; if (!sess?.
 async function handleFiles(files) { for (const f of files) await sendFile(f); }
 async function sendFile(file) { if (!activePeerId || isDestroyed(activePeerId)) return; const sess = sessions[activePeerId]; if (!sess?.dc || sess.dc.readyState !== 'open' || !sess.rootKey || !sess.confirmed) return; const fileId = genUUID(); const fek = await crypto.subtle.generateKey({ name: 'AES-GCM', length: AES_LEN }, true, ['encrypt']); const iv = crypto.getRandomValues(new Uint8Array(12)); const fekRaw = await crypto.subtle.exportKey('raw', fek); const fileBuf = await file.arrayBuffer(); const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, fek, fileBuf); const encData = new Uint8Array(iv.byteLength + ct.byteLength); encData.set(iv); encData.set(new Uint8Array(ct), iv.byteLength); const metaEnc = await encryptPayload(sess, { type: 'file_start', id: fileId, name: file.name, size: encData.byteLength, fek: buf2b64(fekRaw) }); sess.dc.send(JSON.stringify({ type: 'msg', ...metaEnc })); addMsg(activePeerId, `📤 ${file.name} 전송 중... (${formatBytes(encData.byteLength)})`, 'me'); const chunkSize = 64 * 1024; let offset = 0; while (offset < encData.byteLength) { const end = Math.min(offset + chunkSize, encData.byteLength); sess.dc.send(encData.slice(offset, end).buffer); offset = end; await new Promise(r => setTimeout(r, 5)); } const endEnc = await encryptPayload(sess, { type: 'file_end', id: fileId }); sess.dc.send(JSON.stringify({ type: 'msg', ...endEnc })); addMsg(activePeerId, `📤 ${file.name} 전송 완료`, 'me'); }
 
-// URL 해시 처리
+// URL 해시 처리 (동일)
 async function checkHash() {
   const h = location.hash.substring(1); if (!h) return;
   const p = new URLSearchParams(h);
