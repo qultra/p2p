@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
-  <title>P2P 비밀 메신저 – 극한 암호화 최종판</title>
+  <title>P2P 비밀 메신저 – 프리미엄 완전판</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -11,10 +11,10 @@
   <meta name="referrer" content="no-referrer">
   <style>
     :root {
-      --bg: #0a0e14; --surface: #12161f; --card: rgba(20, 26, 36, 0.9);
-      --text: #e6eaf0; --sub: #7d8596; --accent: #6c8ef0; --accent-glow: #4f6fd0;
-      --danger: #f06c6c; --success: #4ecf8a; --border: #1c2330; --radius: 22px;
-      --radius-sm: 15px; --safe-bottom: env(safe-area-inset-bottom, 10px);
+      --bg: #0b0f16; --surface: #151a23; --card: rgba(20,26,36,0.95);
+      --text: #eaeef4; --sub: #828b9b; --accent: #6d8ff0; --accent-dark: #4f6fd0;
+      --danger: #f06969; --success: #43d68a; --border: #1e2635; --radius: 20px; --radius-sm: 14px;
+      --shadow: 0 4px 16px rgba(0,0,0,0.4); --safe-bottom: env(safe-area-inset-bottom, 10px);
     }
     * { margin:0; padding:0; box-sizing:border-box; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent; -webkit-user-modify: read-only; }
     input, textarea { -webkit-user-modify: read-write !important; user-select: text !important; -webkit-user-select: text !important; }
@@ -26,64 +26,69 @@
     }
     .container {
       width: 100%; max-width: 520px; height: 95dvh;
-      background: var(--surface); border-radius: 30px;
-      box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+      background: var(--surface); border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
       display: flex; flex-direction: column; overflow: hidden;
       border: 1px solid var(--border); position: relative;
     }
-    .header { padding:14px 20px; background:rgba(12,18,28,0.85); backdrop-filter:blur(24px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; min-height:60px; }
-    .header h1 { font-size:1.2rem; font-weight:700; background:linear-gradient(135deg,#a0c4ff,#c4a0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .status-bar { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); padding:6px 14px; border-radius:20px; }
-    .dot { width:10px; height:10px; border-radius:50%; transition:0.3s; }
-    .dot.on { background:var(--success); box-shadow:0 0 10px var(--success); }
+    .header { padding:14px 20px; background: rgba(15,20,30,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; min-height:60px; }
+    .header h1 { font-size:1.2rem; font-weight:700; background: linear-gradient(135deg, #a0c4ff, #c4a0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .status-bar { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:6px 14px; border-radius:20px; }
+    .dot { width:10px; height:10px; border-radius:50%; transition: 0.3s; }
+    .dot.on { background:var(--success); box-shadow:0 0 8px var(--success); }
     .dot.off { background:var(--danger); }
-    #connLabel { font-size:0.8rem; color:var(--sub); }
+    #connLabel { font-size:0.8rem; color:var(--sub); font-weight:500; }
     .main-content { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; }
     .main-content::-webkit-scrollbar { width:4px; } .main-content::-webkit-scrollbar-thumb { background:#253040; border-radius:2px; }
-    .card { background:var(--card); backdrop-filter:blur(14px); border-radius:var(--radius); padding:18px; margin-bottom:12px; border:1px solid var(--border); }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); padding:14px 20px; border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:0.95rem; transition:0.2s; width:100%; backdrop-filter:blur(10px); }
-    .btn:hover { background:rgba(255,255,255,0.12); }
-    .btn:active { transform:scale(0.97); }
-    .btn.primary { background:var(--accent); border:none; }
-    .btn.danger { background:var(--danger); border:none; }
+    .card { background:var(--card); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-radius:var(--radius); padding:20px; margin-bottom:14px; border:1px solid var(--border); box-shadow: var(--shadow); }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.06); color:white; border:1px solid var(--border); padding:14px 20px; border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:0.95rem; transition: all 0.2s ease; width:100%; backdrop-filter:blur(10px); }
+    .btn:hover { background:rgba(255,255,255,0.12); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+    .btn:active { transform:scale(0.98); }
+    .btn.primary { background: var(--accent); border:none; box-shadow: 0 4px 12px rgba(109,143,240,0.3); }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.danger { background: var(--danger); border:none; }
     .btn-small { padding:8px 14px; font-size:0.8rem; width:auto; border-radius:12px; }
-    input, textarea { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 15px; font-size:16px; outline:none; }
-    input:focus, textarea:focus { border-color:var(--accent); box-shadow: 0 0 0 2px rgba(91,141,240,0.3); }
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; display:flex; align-items:center; justify-content:center; }
-    .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; width:90%; max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    input, textarea { width:100%; background:rgba(10,15,24,0.8); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 18px; font-size:16px; outline:none; }
+    input:focus, textarea:focus { border-color:var(--accent); box-shadow: 0 0 0 3px rgba(109,143,240,0.15); }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index:100; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.2s ease; }
+    .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; width:90%; max-width:380px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideUp 0.25s ease; }
+    @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+    @keyframes slideUp { from {opacity:0; transform:translateY(20px)} to {opacity:1; transform:translateY(0)} }
     #chatScreen { display:none; flex-direction:column; flex:1; }
     #messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 0; }
-    .msg { display:flex; flex-direction:column; animation:fadeUp 0.2s ease; }
+    .msg { display:flex; flex-direction:column; animation: msgPop 0.2s ease; }
     .msg.system { align-items:center; } .msg.me { align-items:flex-end; } .msg.other { align-items:flex-start; }
+    @keyframes msgPop { from {opacity:0; transform:translateY(10px)} to {opacity:1; transform:translateY(0)} }
     .bubble-canvas {
       max-width:85%; border-radius:20px; touch-action: none; border:1px solid rgba(255,255,255,0.05);
-      cursor: pointer; transition: transform 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s;
     }
     .msg.me .bubble-canvas { border-bottom-right-radius:6px; }
     .msg.other .bubble-canvas { border-bottom-left-radius:6px; }
-    .msg.system .bubble-canvas { border:none; box-shadow: none; }
-    .msg .time { font-size:0.65rem; color:var(--sub); margin-top:4px; }
-    .input-bar { display:flex; gap:6px; padding:10px 0 0; align-items:flex-end; padding-bottom:var(--safe-bottom); }
-    #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; border-radius:22px; }
+    .msg.system .bubble-canvas { border:none; box-shadow:none; background: transparent !important; }
+    .msg .time { font-size:0.65rem; color:var(--sub); margin-top:4px; display:flex; justify-content:flex-end; gap:6px; }
+    .input-bar { display:flex; gap:8px; padding:10px 0 0; align-items:flex-end; padding-bottom:var(--safe-bottom); }
+    #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; border-radius:22px; padding:12px 18px; background: rgba(10,15,24,0.9); }
     .icon-btn { background:none; border:none; font-size:1.3rem; cursor:pointer; padding:10px; color:var(--accent); }
-    .send-btn { background:var(--accent); color:white; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; border:none; }
+    .send-btn { background:var(--accent); color:white; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; border:none; box-shadow: 0 4px 12px rgba(109,143,240,0.3); transition: all 0.2s; }
+    .send-btn:hover { transform: scale(1.05); }
     .action-bar { display:flex; gap:4px; padding:4px 0 0; position:relative; flex-wrap:wrap; }
-    .action-btn { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:8px 14px; border-radius:14px; cursor:pointer; font-size:0.85rem; }
-    .picker-overlay { display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; max-height:220px; overflow-y:auto; z-index:20; margin-bottom:4px; }
+    .action-btn { background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); padding:8px 14px; border-radius:14px; cursor:pointer; font-size:0.85rem; }
+    .picker-overlay { display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; max-height:220px; overflow-y:auto; z-index:20; margin-bottom:6px; }
     .picker-overlay.active { display:flex; flex-direction:column; gap:8px; }
-    .picker-search { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:16px; outline:none; }
     .picker-grid { display:flex; flex-wrap:wrap; gap:8px; }
     .emoji-item { font-size:1.8rem; cursor:pointer; padding:6px 8px; border-radius:8px; }
     .hidden { display:none !important; }
     .link-box { word-break:break-all; background:#0a0f18; padding:10px; border-radius:12px; font-size:0.72rem; margin:8px 0; max-height:75px; overflow-y:auto; color:#9aa4bf; }
     .fingerprint { font-family:monospace; font-size:0.6rem; background:#0a0f18; padding:6px; border-radius:8px; word-break:break-all; }
-    .chat-header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); }
+    .chat-header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); background: rgba(12,18,28,0.7); backdrop-filter: blur(16px); }
     .chat-title { font-size:0.95rem; font-weight:600; flex:1; }
     .typing-indicator { font-size:0.75rem; color:var(--sub); padding:4px 16px; display:none; }
     .contact-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
-    .contact-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; }
-    .contact-card.active { border-color:var(--accent); background:rgba(91,141,240,0.1); }
-    .contact-avatar { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:1.2rem; position:relative; }
+    .contact-card { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; transition: 0.2s; }
+    .contact-card:hover { background: rgba(255,255,255,0.05); }
+    .contact-card.active { border-color:var(--accent); background:rgba(109,143,240,0.1); }
+    .contact-avatar { width:44px; height:44px; border-radius:50%; background: linear-gradient(135deg, #3b4d7a, #5c4b82); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:600; color:white; position:relative; }
     .contact-dot { position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid var(--surface); }
     .contact-dot.on { background:var(--success); } .contact-dot.off { background:var(--danger); }
     .contact-info { flex:1; }
@@ -94,68 +99,82 @@
 </head>
 <body>
 <div class="container">
-  <div class="header"><h1>🔐 P2P 비밀채팅</h1><div class="status-bar"><span id="connDot" class="dot off"></span><span id="connLabel">오프라인</span></div></div>
+  <div class="header"><h1>🔐 비밀채팅</h1><div class="status-bar"><span id="connDot" class="dot off"></span><span id="connLabel">오프라인</span></div></div>
   <div class="main-content" id="mainArea">
+    <!-- 뷰: 홈 -->
     <div id="simpleMode" class="view">
       <div class="card text-center">
-        <h3 style="margin-bottom:4px;">서버 없이 완벽한 익명성</h3>
-        <p class="text-sub mb">종단간 암호화 · 오프라인 큐 · 자기 파괴</p>
-        <button class="btn primary" onclick="showNameModal()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>새 채팅 생성</button>
-        <button class="btn mt" onclick="showJoinPanel()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>초대 링크로 참가</button>
+        <h3 style="font-size:1.3rem; margin-bottom:6px;">완벽한 익명성</h3>
+        <p class="text-sub mb">서버 없음 · 종단간 암호화 · 자기 파괴</p>
+        <button class="btn primary" onclick="showNameModal()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>새 채팅</button>
+        <button class="btn mt" onclick="showJoinPanel()"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>초대 받기</button>
       </div>
+      <div style="font-size:0.8rem; color:var(--sub); margin-bottom:6px;">📋 대화 목록</div>
       <div class="contact-list" id="contactList"></div>
     </div>
+    <!-- 모달: 이름 입력 -->
     <div id="nameModal" class="modal hidden">
-      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="이름 입력"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" onclick="confirmNewChat()">확인</button><button class="btn" onclick="closeNameModal()">취소</button></div></div>
+      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="이름"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" onclick="confirmNewChat()">확인</button><button class="btn" onclick="closeNameModal()">취소</button></div></div>
     </div>
+    <!-- 뷰: 오퍼 패널 -->
     <div id="offerPanel" class="view hidden">
       <div class="card text-center">
-        <p><strong>연결 링크 생성 중...</strong></p>
+        <p><strong>연결 링크</strong></p>
         <div class="link-box" id="offerLinkDisplay">생성 중...</div>
-        <button class="btn mt" onclick="copyTextById('offerLinkDisplay')">링크 복사</button>
-        <input type="text" id="answerLinkInput" placeholder="Answer 링크 입력..."><button class="btn primary mt" onclick="applyAnswerLink()">연결 완료</button>
-        <button class="btn mt" onclick="goHome()">홈으로</button>
+        <button class="btn mt" onclick="copyTextById('offerLinkDisplay')">복사</button>
+        <input type="text" id="answerLinkInput" placeholder="Answer 링크 입력" style="margin-top:8px;">
+        <button class="btn primary mt" onclick="applyAnswerLink()">연결 완료</button>
+        <button class="btn mt" onclick="goHome()">홈</button>
       </div>
     </div>
+    <!-- 뷰: 참가 패널 -->
     <div id="answerPanel" class="view hidden">
-      <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 링크..."></textarea><button class="btn primary mt" onclick="createAnswerFromOffer()">연결 시작</button></div>
-      <button class="btn mt" onclick="goHome()">홈으로</button>
+      <div class="card"><strong>📥 초대 링크</strong><textarea id="remoteOfferSDP" rows="3" placeholder="링크를 붙여넣으세요"></textarea><button class="btn primary mt" onclick="createAnswerFromOffer()">연결</button></div>
+      <button class="btn mt" onclick="goHome()">홈</button>
     </div>
+    <!-- 뷰: 채팅 화면 -->
     <div id="chatScreen" class="view hidden">
       <div class="chat-header">
         <button class="btn-small" onclick="goHome()">←</button>
         <span class="chat-title" id="chatTitle">채팅</span>
         <button class="btn-small danger" onclick="destroyActiveChat()">✕</button>
       </div>
-      <div id="securityCard" class="card" style="display:none;">🔒 <span id="sessionFingerprint" class="fingerprint"></span></div>
+      <div id="securityCard" class="card" style="display:none; padding:6px 12px; font-size:0.7rem;">🔒 <span id="sessionFingerprint" class="fingerprint"></span></div>
       <div id="passwordPrompt" class="card text-center">
-        <strong>🔐 암호 입력</strong><input type="password" id="chatPasswordInput" placeholder="상대와 공유한 암호">
-        <button class="btn primary mt" onclick="submitPassword()">암호 설정</button>
-        <p id="passwordError" style="color:var(--danger);display:none;"></p>
+        <strong>🔐 암호 설정</strong><input type="password" id="chatPasswordInput" placeholder="상대와 공유할 암호">
+        <button class="btn primary mt" onclick="submitPassword()">암호 입력</button>
+        <p id="passwordError" style="color:var(--danger); display:none;"></p>
       </div>
       <div id="messages"></div>
-      <div class="input-bar"><input type="file" id="fileInput" class="hidden" multiple onchange="handleFiles(this.files)"><button class="icon-btn" onclick="document.getElementById('fileInput').click()">📎</button><textarea id="msgInput" rows="1" placeholder="메시지 입력..."></textarea><button class="send-btn" onclick="sendText()">➤</button></div>
+      <div id="typingIndicator" class="typing-indicator">상대방이 입력 중...</div>
+      <div class="input-bar">
+        <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+        <textarea id="msgInput" rows="1" placeholder="메시지..."></textarea>
+        <button class="send-btn" onclick="sendText()">➤</button>
+        <input type="file" id="fileInput" class="hidden" multiple onchange="handleFiles(this.files)">
+      </div>
     </div>
   </div>
 </div>
+<div id="answerModal" class="modal hidden">
+  <div class="modal-content"><h3>내 Answer</h3><div class="link-box" id="answerModalLink"></div><button class="btn primary" onclick="copyAnswerModalLink()">복사</button><button class="btn mt" onclick="closeAnswerModal()">닫기</button></div>
+</div>
+
 <script>
 "use strict";
-
-// 방어 시스템
+// ===== 방어 =====
 (()=>{
-  if(navigator.webdriver) { document.body.innerHTML=''; location.replace('about:blank'); }
-  let dbg=0; setInterval(()=>{ const s=performance.now();debugger; if(performance.now()-s>160)dbg++;
-    if(dbg>=2||window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){
-      destroyAllSessions();location.replace('about:blank'); } },1000);
-  let t=false; Object.defineProperties(console,{log:{get(){t=true;return()=>{}}},warn:{get(){t=true;return()=>{}}},error:{get(){t=true;return()=>{}}}});
-  setInterval(()=>{if(t){destroyAllSessions();location.replace('about:blank');}},500);
-  addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U')){e.preventDefault()}});
+  if(navigator.webdriver){location.replace('about:blank')}
+  let d=0;setInterval(()=>{const s=performance.now();debugger;if(performance.now()-s>160)d++;if(d>=2||window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){destroyAllSessions();location.replace('about:blank')}},1000);
+  let t=false;Object.defineProperties(console,{log:{get(){t=true;return()=>{}}},warn:{get(){t=true;return()=>{}}},error:{get(){t=true;return()=>{}}}});
+  setInterval(()=>{if(t){destroyAllSessions();location.replace('about:blank')}},500);
+  addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U'))e.preventDefault()});
   addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
   addEventListener('copy',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
   addEventListener('cut',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
 })();
 
-// 유틸리티
+// ===== 유틸 =====
 const te=new TextEncoder(), td=new TextDecoder();
 const toB64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 const fromB64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer};
@@ -169,109 +188,44 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const fmtB=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
 const up=ok=>{document.getElementById('connDot').className='dot '+(ok?'on':'off');document.getElementById('connLabel').textContent=ok?'연결됨':'오프라인'};
 
+// ===== ICE / 세션 =====
 const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'}];
-const sessions={}; let ap=null; const DEST='p2p_d_', PD='p2p_pd_', Q='p2p_q_';
+const sessions={}; let ap=null;
+const DEST='p2p_d_', PD='p2p_pd_', Q='p2p_q_';
 if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 
 // 암호화 상수
 const ECDH={name:'ECDH',namedCurve:'P-521'}, PBKDF2=20000000, SALT=4096, ALEN=256, TALEN=128, PADMIN=256, PADMAX=512, CSIZE=65536;
 
-function getSess(pid){
-  if(!sessions[pid]) sessions[pid]={
-    pc:null,dc:null,tdc:null,tk:null,offerer:false,pw:null,
-    rk:null,sck:null,rck:null,sn:0,rn:0, ourEpk:null,theirEpk:null,
-    salt:null,ourEcdh:null,peerEcdh:null, done:false,conf:false,online:false,
-    recvIds:new Set(), pend:[], frecv:null, ttimer:null, rtry:0, pconf:null,
-    dretry:0, qkey:null, skip:new Map()
-  };
-  return sessions[pid];
-}
+// 세션
+function getSess(pid){if(!sessions[pid])sessions[pid]={pc:null,dc:null,tdc:null,tk:null,offerer:false,pw:null,rk:null,sck:null,rck:null,sn:0,rn:0,ourEpk:null,theirEpk:null,salt:null,ourEcdh:null,peerEcdh:null,done:false,conf:false,online:false,recvIds:new Set(),pend:[],frecv:null,ttimer:null,rtry:0,pconf:null,dretry:0,qkey:null,skip:new Map()};return sessions[pid]}
 function isDest(pid){return!!(localStorage.getItem(DEST+pid)||sessionStorage.getItem(DEST+pid))}
-function markDest(pid){
-  localStorage.setItem(DEST+pid,Date.now());sessionStorage.setItem(DEST+pid,Date.now());
-  clearPD(pid); clearQ(pid); if(location.hash) history.replaceState(null,'',location.pathname);
-  if(sessions[pid]){ zero(sessions[pid]); delete sessions[pid]; }
-}
+function markDest(pid){localStorage.setItem(DEST+pid,Date.now());sessionStorage.setItem(DEST+pid,Date.now());clearPD(pid);clearQ(pid);if(location.hash)history.replaceState(null,'',location.pathname);if(sessions[pid]){zero(sessions[pid]);delete sessions[pid]}}
 function zero(s){const z=b=>{if(b)try{new Uint8Array(b).fill(0)}catch(e){}};z(s.rk);z(s.sck);z(s.rck);if(s.salt)z(s.salt.buffer);Object.keys(s).forEach(k=>s[k]=null)}
 function destroyAllSessions(){Object.keys(sessions).forEach(markDest);ap=null}
 
+// 오프라인 큐 암호화
 async function gqkey(pid){const s=sessions[pid];if(!s.qkey)s.qkey=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);return s.qkey}
 async function saveQ(pid,q){const k=await gqkey(pid),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,sb(JSON.stringify(q)));localStorage.setItem(Q+pid,JSON.stringify({iv:bb(iv.buffer),data:bb(ct)}))}
 async function loadQ(pid){const r=localStorage.getItem(Q+pid);if(!r)return[];try{const{iv,data}=JSON.parse(r),k=await gqkey(pid),dc=await crypto.subtle.decrypt({name:'AES-GCM',iv:bf(iv)},k,bf(data));return JSON.parse(td.decode(dc))}catch(e){return[]}}
 function clearQ(pid){localStorage.removeItem(Q+pid)}
 
-// 연락처 & UI
+// 연락처
 function getContacts(){try{return JSON.parse(localStorage.getItem('p2p_contacts')||'[]')}catch(e){return[]}}
 function saveContacts(c){localStorage.setItem('p2p_contacts',JSON.stringify(c))}
-function addContact(pid,n){let c=getContacts();if(!c.find(x=>x.id===pid)){c.push({id:pid,name:n});saveContacts(c)} renderContactList()}
-function renameChat(){if(!ap)return;const cs=getContacts(),c=cs.find(x=>x.id===ap);if(!c)return;const n=prompt('새 이름:',c.name);if(n){c.name=n;saveContacts(cs);document.getElementById('chatTitle').textContent=n;renderContactList()}}
-function renderContactList(){
-  const ct=document.getElementById('contactList');if(!ct)return;
-  const cs=getContacts().filter(c=>!isDest(c.id));
-  ct.innerHTML=cs.map(c=>{
-    const s=sessions[c.id],on=s?.online||false,un=s?s.pend.length:0;
-    return `<div class="contact-card ${c.id===ap?'active':''}" onclick="selectPeer('${c.id}')">
-      <div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot ${on?'on':'off'}"></span></div>
-      <div class="contact-info"><div class="contact-name">${esc(c.name)} ${un?'<span class="unread-badge">'+un+'</span>':''}</div>
-      <div class="contact-status">${on?'온라인':'오프라인'}</div></div></div>`;
-  }).join('');
-}
-function showView(v){
-  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-  const t=document.getElementById(v);if(t){t.classList.remove('hidden');t.style.display=v==='chatScreen'?'flex':''}
-}
-function selectPeer(pid){
-  if(isDest(pid)){alert('삭제된 대화');return}
-  if(hasPD(pid)){markDest(pid);alert('삭제 요청됨');renderContactList();return}
-  ap=pid;showView('chatScreen');document.getElementById('messages').innerHTML='';
-  const s=getSess(pid);s.pend.forEach(e=>appendEnc(e,pid,'other'));s.pend=[];
-  document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===pid)?.name||'채팅';
-  up(s.online);
-  const sc=document.getElementById('securityCard'),pp=document.getElementById('passwordPrompt');
-  if(s.rk&&s.conf){sc.style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);pp.style.display='none'}
-  else{sc.style.display='none';pp.style.display='block'}
-  renderContactList();
-}
+function addContact(pid,n){let c=getContacts();if(!c.find(x=>x.id===pid)){c.push({id:pid,name:n});saveContacts(c)}renderContactList()}
+function renderContactList(){const ct=document.getElementById('contactList');if(!ct)return;const cs=getContacts().filter(c=>!isDest(c.id));ct.innerHTML=cs.map(c=>{const s=sessions[c.id],on=s?.online||false,un=s?s.pend.length:0;return`<div class="contact-card ${c.id===ap?'active':''}" onclick="selectPeer('${c.id}')"><div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot ${on?'on':'off'}"></span></div><div class="contact-info"><div class="contact-name">${esc(c.name)} ${un?'<span class="unread-badge">'+un+'</span>':''}</div><div class="contact-status">${on?'온라인':'오프라인'}</div></div></div>`}).join('')}
+function showView(v){document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));const t=document.getElementById(v);if(t){t.classList.remove('hidden');t.style.display=v==='chatScreen'?'flex':''}}
+function selectPeer(pid){if(isDest(pid)){alert('삭제된 대화');return}if(hasPD(pid)){markDest(pid);alert('삭제 요청됨');renderContactList();return}ap=pid;showView('chatScreen');document.getElementById('messages').innerHTML='';const s=getSess(pid);s.pend.forEach(e=>appendEnc(e,pid,'other'));s.pend=[];document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===pid)?.name||'채팅';up(s.online);const sc=document.getElementById('securityCard'),pp=document.getElementById('passwordPrompt');if(s.rk&&s.conf){sc.style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);pp.style.display='none'}else{sc.style.display='none';pp.style.display='block'}renderContactList()}
 function goHome(){ap=null;showView('simpleMode');document.getElementById('messages').innerHTML='';document.getElementById('securityCard').style.display='none';document.getElementById('passwordPrompt').style.display='block';up(false);renderContactList()}
-
-// 모달 & 연결
 function showNameModal(){document.getElementById('nameModal').classList.remove('hidden')}
 function closeNameModal(){document.getElementById('nameModal').classList.add('hidden')}
-function confirmNewChat(){
-  const n=document.getElementById('peerNameInput').value.trim();if(!n)return;
-  closeNameModal();const pid=uuid();addContact(pid,n);ap=pid;
-  const s=getSess(pid);s.offerer=true;showView('offerPanel');
-  document.getElementById('offerLinkDisplay').textContent='생성 중...';initPC(pid);
-  s.dc=s.pc.createDataChannel('chat',{ordered:true});s.tdc=s.pc.createDataChannel('typing',{ordered:false,maxRetransmits:0});
-  setupDC(pid);setupTDC(pid);
-  s.pc.createOffer().then(o=>s.pc.setLocalDescription(o)).then(()=>waitIce(s.pc).then(()=>{
-    document.getElementById('offerLinkDisplay').textContent=location.origin+location.pathname+'#offer='+encSDP(s.pc.localDescription)+'&peer='+pid;
-  }));
-  renderContactList();
-}
+function confirmNewChat(){const n=document.getElementById('peerNameInput').value.trim();if(!n)return;closeNameModal();const pid=uuid();addContact(pid,n);ap=pid;const s=getSess(pid);s.offerer=true;showView('offerPanel');document.getElementById('offerLinkDisplay').textContent='생성 중...';initPC(pid);s.dc=s.pc.createDataChannel('chat',{ordered:true});s.tdc=s.pc.createDataChannel('typing',{ordered:false,maxRetransmits:0});setupDC(pid);setupTDC(pid);s.pc.createOffer().then(o=>s.pc.setLocalDescription(o)).then(()=>waitIce(s.pc).then(()=>{document.getElementById('offerLinkDisplay').textContent=location.origin+location.pathname+'#offer='+encSDP(s.pc.localDescription)+'&peer='+pid}))}
 function showJoinPanel(){showView('answerPanel')}
-async function createAnswerFromOffer(){
-  const t=document.getElementById('remoteOfferSDP').value.trim();if(!t)return;
-  let os=t,pid;if(t.startsWith('http')){const u=new URL(t);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('offer')){alert('잘못된 초대');return}os=hp.get('offer');pid=hp.get('peer')||uuid()}
-  else pid=uuid();
-  const offer=decSDP(os);addContact(pid,'상대');ap=pid;
-  const s=getSess(pid);s.offerer=false;initPC(pid);
-  await s.pc.setRemoteDescription(offer);const ans=await s.pc.createAnswer();await s.pc.setLocalDescription(ans);await waitIce(s.pc);
-  showView('chatScreen');document.getElementById('chatTitle').textContent='상대';
-  document.getElementById('passwordPrompt').style.display='block';
-  document.getElementById('answerModalLink').textContent=location.origin+location.pathname+'#answer='+encSDP(s.pc.localDescription)+'&peer='+pid;
-  document.getElementById('answerModal').classList.remove('hidden');renderContactList();
-}
+async function createAnswerFromOffer(){const t=document.getElementById('remoteOfferSDP').value.trim();if(!t)return;let os=t,pid;if(t.startsWith('http')){const u=new URL(t);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('offer')){alert('잘못된 초대');return}os=hp.get('offer');pid=hp.get('peer')||uuid()}else pid=uuid();const offer=decSDP(os);addContact(pid,'상대');ap=pid;const s=getSess(pid);s.offerer=false;initPC(pid);await s.pc.setRemoteDescription(offer);const ans=await s.pc.createAnswer();await s.pc.setLocalDescription(ans);await waitIce(s.pc);showView('chatScreen');document.getElementById('chatTitle').textContent='상대';document.getElementById('passwordPrompt').style.display='block';document.getElementById('answerModalLink').textContent=location.origin+location.pathname+'#answer='+encSDP(s.pc.localDescription)+'&peer='+pid;document.getElementById('answerModal').classList.remove('hidden');renderContactList()}
 function closeAnswerModal(){document.getElementById('answerModal').classList.add('hidden')}
 function copyAnswerModalLink(){const t=document.getElementById('answerModalLink').textContent;navigator.clipboard.writeText(t).then(()=>alert('복사됨')).catch(()=>prompt('복사:',t))}
-async function applyAnswerLink(){
-  const l=document.getElementById('answerLinkInput').value.trim();if(!l)return;
-  if(!ap||!sessions[ap]?.pc||!sessions[ap]?.offerer){alert('먼저 방 생성 후 사용');return}
-  let as=l;if(l.startsWith('http')){const u=new URL(l);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('answer')){alert('잘못된 Answer');return}as=hp.get('answer')}
-  await sessions[ap].pc.setRemoteDescription(decSDP(as));
-  showView('chatScreen');document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===ap)?.name||'채팅';
-  document.getElementById('passwordPrompt').style.display='block';
-}
+async function applyAnswerLink(){const l=document.getElementById('answerLinkInput').value.trim();if(!l)return;if(!ap||!sessions[ap]?.pc||!sessions[ap]?.offerer){alert('먼저 방 생성');return}let as=l;if(l.startsWith('http')){const u=new URL(l);const hp=new URLSearchParams(u.hash.substring(1));if(!hp.has('answer')){alert('잘못된 Answer');return}as=hp.get('answer')}await sessions[ap].pc.setRemoteDescription(decSDP(as));showView('chatScreen');document.getElementById('chatTitle').textContent=getContacts().find(c=>c.id===ap)?.name||'채팅';document.getElementById('passwordPrompt').style.display='block'}
 function waitIce(pc){return new Promise(r=>{if(pc.iceGatheringState==='complete')r();else pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete')r()})})}
 
 // WebRTC
@@ -279,84 +233,24 @@ function initPC(pid){const s=sessions[pid];if(s.pc)s.pc.close();s.pc=new RTCPeer
 function setupDC(pid){const s=sessions[pid];if(!s?.dc)return;s.dc.onopen=()=>{if(isDest(pid))return;s.online=true;up(true);renderContactList();if(hasPD(pid)){trySendDestroy(pid);return}if(s.done){addSys('🔄 재인증 필요');s.done=false;s.rk=null;s.sck=null;s.rck=null;s.tk=null;s.conf=false;startEcdh(pid)}else if(!s.done&&!s.rk){if(!s.ourEcdh)startEcdh(pid)}};s.dc.onmessage=e=>onMsg(pid,e);s.dc.onclose=()=>{const was=s.online;s.online=false;up(false);renderContactList();if(was){sendClear(pid);clearRevealed(pid)}}}
 function setupTDC(pid){const s=sessions[pid];if(!s?.tdc)return;s.tdc.onmessage=e=>{if(typeof e.data==='string'){try{const d=JSON.parse(e.data);if(d.type==='__destroy_req__'){markDest(d.peerId||pid);goHome()}if(s.tk)decTyping(s,d).then(st=>{if(pid===ap)document.getElementById('typingIndicator').style.display=st==='1'?'block':'none'}).catch(()=>{})}catch(e){}}}}
 
-// ★ 완전한 더블 래칫 (Signal 프로토콜 기반)
-async function startEcdh(pid){
-  const s=sessions[pid];const kp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);
-  s.ourEcdh={privateKey:kp.privateKey,publicKey:kp.publicKey};const pub=await crypto.subtle.exportKey('raw',kp.publicKey);
-  if(s.offerer){s.salt=crypto.getRandomValues(new Uint8Array(SALT));s.dc.send(JSON.stringify({type:'__ecdhe__',salt:bb(s.salt.buffer),pubKey:bb(pub)}))}
-  else s.dc.send(JSON.stringify({type:'__ecdhe__',pubKey:bb(pub)}))
-}
+// ===== 더블 래칫 =====
+async function startEcdh(pid){const s=sessions[pid];const kp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEcdh={privateKey:kp.privateKey,publicKey:kp.publicKey};const pub=await crypto.subtle.exportKey('raw',kp.publicKey);if(s.offerer){s.salt=crypto.getRandomValues(new Uint8Array(SALT));s.dc.send(JSON.stringify({type:'__ecdhe__',salt:bb(s.salt.buffer),pubKey:bb(pub)}))}else s.dc.send(JSON.stringify({type:'__ecdhe__',pubKey:bb(pub)}))}
 async function handleEcdhe(pid,d){const s=sessions[pid];if(s.done)return;if(d.salt)s.salt=new Uint8Array(bf(d.salt));s.peerEcdh=await crypto.subtle.importKey('raw',bf(d.pubKey),ECDH,true,[]);if(s.pw&&s.ourEcdh&&s.peerEcdh&&s.salt)await deriveRK(pid)}
-async function submitPassword(){
-  if(!ap)return;const s=sessions[ap];const pw=document.getElementById('chatPasswordInput').value.trim();
-  if(!pw){document.getElementById('passwordError').textContent='암호 입력';document.getElementById('passwordError').style.display='block';return}
-  s.pw=pw;if(s.salt&&s.ourEcdh&&s.peerEcdh)await deriveRK(ap);
-  else{document.getElementById('passwordError').textContent='연결 준비 중';document.getElementById('passwordError').style.display='block'}
-}
-async function deriveRK(pid){
-  const s=sessions[pid];
-  const km=await crypto.subtle.importKey('raw',sb(s.pw),'PBKDF2',false,['deriveKey']);
-  s.authKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s.salt,iterations:PBKDF2,hash:'SHA-512'},km,{name:'AES-GCM',length:ALEN},true,['encrypt','decrypt']);
-  const ecdhBits=await crypto.subtle.deriveBits({name:'ECDH',public:s.peerEcdh},s.ourEcdh.privateKey,521);
-  const authRaw=await crypto.subtle.exportKey('raw',s.authKey);
-  const ikm=cat(ecdhBits,sb(s.pw));
-  const hkdfKey=await crypto.subtle.importKey('raw',ikm,'HKDF',false,['deriveBits']);
-  const rk=await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-512',salt:authRaw,info:sb('root')},hkdfKey,256);
-  s.rk=rk;s.ourEpk=s.ourEcdh;s.theirEpk=s.peerEcdh;
-  const tkr=new Uint8Array(rk).slice(0,16);
-  s.tk=await crypto.subtle.importKey('raw',tkr,{name:'AES-GCM',length:TALEN},false,['encrypt','decrypt']);
-  s.done=true;
-  if(s.offerer)await sendConf(pid);
-  if(s.pconf){const p=s.pconf;s.pconf=null;await handleConf(pid,p)}
-  if(pid===ap){document.getElementById('securityCard').style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);document.getElementById('passwordPrompt').style.display='none';document.getElementById('passwordError').style.display='none'}
-}
-async function sendConf(pid){
-  const s=sessions[pid];if(!s.rk||!s.dc||s.dc.readyState!=='open')return;
-  const nkp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEpk=nkp;
-  const nck=await dhRatchet(s,nkp.privateKey,s.theirEpk);s.sck=nck;s.sn=0;
-  const pub=await crypto.subtle.exportKey('raw',nkp.publicKey);s.dc.send(JSON.stringify({type:'__confirm__',dhPub:bb(pub)}))
-}
+async function submitPassword(){if(!ap)return;const s=sessions[ap];const pw=document.getElementById('chatPasswordInput').value.trim();if(!pw){document.getElementById('passwordError').textContent='암호 입력';document.getElementById('passwordError').style.display='block';return}s.pw=pw;if(s.salt&&s.ourEcdh&&s.peerEcdh)await deriveRK(ap);else{document.getElementById('passwordError').textContent='연결 준비 중';document.getElementById('passwordError').style.display='block'}}
+async function deriveRK(pid){const s=sessions[pid];const km=await crypto.subtle.importKey('raw',sb(s.pw),'PBKDF2',false,['deriveKey']);s.authKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s.salt,iterations:PBKDF2,hash:'SHA-512'},km,{name:'AES-GCM',length:ALEN},true,['encrypt','decrypt']);const ecdhBits=await crypto.subtle.deriveBits({name:'ECDH',public:s.peerEcdh},s.ourEcdh.privateKey,521);const authRaw=await crypto.subtle.exportKey('raw',s.authKey);const ikm=cat(ecdhBits,sb(s.pw));const hkdfKey=await crypto.subtle.importKey('raw',ikm,'HKDF',false,['deriveBits']);const rk=await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-512',salt:authRaw,info:sb('root')},hkdfKey,256);s.rk=rk;s.ourEpk=s.ourEcdh;s.theirEpk=s.peerEcdh;const tkr=new Uint8Array(rk).slice(0,16);s.tk=await crypto.subtle.importKey('raw',tkr,{name:'AES-GCM',length:TALEN},false,['encrypt','decrypt']);s.done=true;if(s.offerer)await sendConf(pid);if(s.pconf){const p=s.pconf;s.pconf=null;await handleConf(pid,p)}if(pid===ap){document.getElementById('securityCard').style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);document.getElementById('passwordPrompt').style.display='none';document.getElementById('passwordError').style.display='none'}}
+async function sendConf(pid){const s=sessions[pid];if(!s.rk||!s.dc||s.dc.readyState!=='open')return;const nkp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEpk=nkp;const nck=await dhRatchet(s,nkp.privateKey,s.theirEpk);s.sck=nck;s.sn=0;const pub=await crypto.subtle.exportKey('raw',nkp.publicKey);s.dc.send(JSON.stringify({type:'__confirm__',dhPub:bb(pub)}))}
 async function handleConf(pid,d){const s=sessions[pid];if(!s.rk){s.pconf=d;return}if(d.dhPub)await recvRatchet(s,d.dhPub);s.conf=true;if(!s.offerer)await sendConf(pid);if(pid===ap){document.getElementById('securityCard').style.display='flex';document.getElementById('sessionFingerprint').textContent=hex(s.rk);document.getElementById('passwordPrompt').style.display='none';document.getElementById('passwordError').style.display='none'}flushQ(pid)}
 async function dhRatchet(s,ourPriv,theirPub){const bits=await crypto.subtle.deriveBits({name:'ECDH',public:theirPub},ourPriv,521);const ikm=cat(bits,s.rk);const hkdfKey=await crypto.subtle.importKey('raw',ikm,'HKDF',false,['deriveBits']);const okm=await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-512',salt:new Uint8Array(32),info:sb('ratchet')},hkdfKey,512);s.rk=okm.slice(0,32);return okm.slice(32,64)}
 async function symRatchet(ck){const k=await crypto.subtle.importKey('raw',ck,{name:'HMAC',hash:'SHA-512'},false,['sign']);const mk=await crypto.subtle.sign('HMAC',k,new Uint8Array([1]));const nck=await crypto.subtle.sign('HMAC',k,new Uint8Array([2]));return{msgKey:mk.slice(0,32),nextChainKey:nck.slice(0,32)}}
 async function sendingRatchet(s){if(!s.sck){const kp=await crypto.subtle.generateKey(ECDH,true,['deriveKey','deriveBits']);s.ourEpk=kp;s.sck=await dhRatchet(s,kp.privateKey,s.theirEpk);s.sn=0;const pub=await crypto.subtle.exportKey('raw',kp.publicKey);return bb(pub)}return null}
-async function encryptPayload(s,obj){
-  const dhPub=await sendingRatchet(s);const{mk,nck}=await symRatchet(s.sck);s.sck=nck;
-  const seq=s.sn++,iv=crypto.getRandomValues(new Uint8Array(16));
-  const pad=PADMIN+Math.floor(crypto.getRandomValues(new Uint8Array(1))[0]/256*(PADMAX-PADMIN));
-  const padded={...obj,_pad:bb(crypto.getRandomValues(new Uint8Array(pad)).buffer)};
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['encrypt']),sb(JSON.stringify(padded)));
-  const r={seq,iv:Array.from(new Uint8Array(iv)),ct:Array.from(new Uint8Array(ct))};if(dhPub)r.dhPub=dhPub;
-  new Uint8Array(mk).fill(0);return r;
-}
+async function encryptPayload(s,obj){const dhPub=await sendingRatchet(s);const{mk,nck}=await symRatchet(s.sck);s.sck=nck;const seq=s.sn++,iv=crypto.getRandomValues(new Uint8Array(16));const pad=PADMIN+Math.floor(crypto.getRandomValues(new Uint8Array(1))[0]/256*(PADMAX-PADMIN));const padded={...obj,_pad:bb(crypto.getRandomValues(new Uint8Array(pad)).buffer)};const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['encrypt']),sb(JSON.stringify(padded)));const r={seq,iv:Array.from(new Uint8Array(iv)),ct:Array.from(new Uint8Array(ct))};if(dhPub)r.dhPub=dhPub;new Uint8Array(mk).fill(0);return r}
 async function recvRatchet(s,dhPubB64){const pub=bf(dhPubB64);const peerPub=await crypto.subtle.importKey('raw',pub,ECDH,true,[]);s.rck=await dhRatchet(s,s.ourEpk.privateKey,peerPub);s.rn=0;s.theirEpk=peerPub}
-async function decryptPayload(s,d){
-  if(d.dhPub)await recvRatchet(s,d.dhPub);if(!s.rck)throw new Error('no recv chain');
-  let {seq,iv,ct}=d; if(seq<s.rn){
-    const stored=s.skip.get(seq);if(stored){const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',stored,'AES-GCM',false,['decrypt']),new Uint8Array(ct));const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj}else return null;
-  }
-  while(s.rn<seq){const{mk,nck}=await symRatchet(s.rck);s.skip.set(s.rn,mk);s.rck=nck;s.rn++}
-  const{mk,nck}=await symRatchet(s.rck);s.skip.set(seq,mk);s.rck=nck;s.rn=seq+1;
-  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['decrypt']),new Uint8Array(ct));
-  const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj;
-}
+async function decryptPayload(s,d){if(d.dhPub)await recvRatchet(s,d.dhPub);if(!s.rck)throw new Error('no recv chain');let{seq,iv,ct}=d;if(seq<s.rn){const stored=s.skip.get(seq);if(stored){const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',stored,'AES-GCM',false,['decrypt']),new Uint8Array(ct));const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj}else return null}while(s.rn<seq){const{mk,nck}=await symRatchet(s.rck);s.skip.set(s.rn,mk);s.rck=nck;s.rn++}const{mk,nck}=await symRatchet(s.rck);s.skip.set(seq,mk);s.rck=nck;s.rn=seq+1;const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(iv)},await crypto.subtle.importKey('raw',mk,'AES-GCM',false,['decrypt']),new Uint8Array(ct));const obj=JSON.parse(td.decode(plain));delete obj._pad;return obj}
 
-// 캔버스 Hold-to-Reveal
+// 캔버스 hold-to-reveal
 let currentRevealed=null;
-function appendEnc(enc,pid,who,mid){
-  const md=document.getElementById('messages');const d=document.createElement('div');d.className='msg '+who;if(mid)d.id='msg-'+mid;
-  const c=document.createElement('canvas');c.className='bubble-canvas';const dpr=window.devicePixelRatio||1,bw=230,bh=85;c.width=bw*dpr;c.height=bh*dpr;c.style.width=bw+'px';c.style.height=bh+'px';const ctx=c.getContext('2d');ctx.scale(dpr,dpr);drawLocked(ctx,bw,bh,who);
-  d.dataset.enc=JSON.stringify(enc);d.dataset.who=who;d.appendChild(c);
-  const tdiv=document.createElement('div');tdiv.className='time';tdiv.textContent=new Date().toLocaleTimeString();d.appendChild(tdiv);
-  let timer;const clear=()=>{drawLocked(c.getContext('2d'),bw,bh,who);if(currentRevealed===c)currentRevealed=null};
-  c.addEventListener('pointerdown',e=>{e.preventDefault();if(currentRevealed&&currentRevealed!==c){const ctx2=currentRevealed.getContext('2d');const w2=parseInt(currentRevealed.style.width);const h2=parseInt(currentRevealed.style.height);const w=currentRevealed.parentElement?.dataset.who||'other';drawLocked(ctx2,w2,h2,w);currentRevealed=null}
-    timer=setTimeout(async()=>{const enc=JSON.parse(d.dataset.enc);const s=sessions[pid];const ctx=c.getContext('2d');if(!s||!s.rk||!s.conf){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f0a060';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('🔒 암호 입력 필요',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1800);return}
-      try{const obj=await decryptPayload(s,enc);if(obj){let txt='';if(obj.type==='text')txt=obj.content;else if(obj.type==='emoji')txt=obj.content;else if(obj.type==='media')txt='[이미지]';else if(obj.type==='file_start')txt=`📁 ${obj.name} (${fmtB(obj.size)})`;if(!txt)return;
-        ctx.clearRect(0,0,bw,bh);const grad=ctx.createLinearGradient(0,0,bw,bh);if(who==='me'){grad.addColorStop(0,'rgba(108,142,240,0.6)');grad.addColorStop(1,'rgba(130,100,240,0.6)')}else{grad.addColorStop(0,'rgba(22,30,44,0.9)');grad.addColorStop(1,'rgba(28,36,52,0.9)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#e6eaf0';ctx.font='15px Inter';ctx.textBaseline='middle';wrapText(ctx,txt,12,bh/2,bw-24,21);currentRevealed=c;const buf=te.encode(txt);new Uint8Array(buf).fill(0)}}catch(e){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f06c6c';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('복호화 실패',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1500)}},400)});
-  const up=()=>{clearTimeout(timer);if(currentRevealed===c)clear()};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);c.addEventListener('pointerleave',up);
-  md.appendChild(c);md.scrollTop=md.scrollHeight;
-}
-function drawLocked(ctx,w,h,who){ctx.clearRect(0,0,w,h);const grad=ctx.createLinearGradient(0,0,w,h);if(who==='me'){grad.addColorStop(0,'rgba(108,142,240,0.3)');grad.addColorStop(1,'rgba(130,100,240,0.3)')}else{grad.addColorStop(0,'rgba(22,30,44,0.7)');grad.addColorStop(1,'rgba(28,36,52,0.7)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,w,h,16);ctx.fill();ctx.fillStyle='#8892b0';ctx.font='24px Inter';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔒',w/2,h/2-6);ctx.font='10px Inter';ctx.fillText('길게 눌러 보기',w/2,h/2+18)}
+function appendEnc(enc,pid,who,mid){const md=document.getElementById('messages');const d=document.createElement('div');d.className='msg '+who;if(mid)d.id='msg-'+mid;const c=document.createElement('canvas');c.className='bubble-canvas';const dpr=window.devicePixelRatio||1,bw=230,bh=85;c.width=bw*dpr;c.height=bh*dpr;c.style.width=bw+'px';c.style.height=bh+'px';const ctx=c.getContext('2d');ctx.scale(dpr,dpr);drawLocked(ctx,bw,bh,who);d.dataset.enc=JSON.stringify(enc);d.dataset.who=who;d.appendChild(c);const tdiv=document.createElement('div');tdiv.className='time';tdiv.textContent=new Date().toLocaleTimeString();d.appendChild(tdiv);let timer;const clear=()=>{drawLocked(c.getContext('2d'),bw,bh,who);if(currentRevealed===c)currentRevealed=null};c.addEventListener('pointerdown',e=>{e.preventDefault();if(currentRevealed&&currentRevealed!==c){const ctx2=currentRevealed.getContext('2d');const w2=parseInt(currentRevealed.style.width);const h2=parseInt(currentRevealed.style.height);const w=currentRevealed.parentElement?.dataset.who||'other';drawLocked(ctx2,w2,h2,w);currentRevealed=null}timer=setTimeout(async()=>{const enc=JSON.parse(d.dataset.enc);const s=sessions[pid];const ctx=c.getContext('2d');if(!s||!s.rk||!s.conf){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f0a060';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('🔒 암호 입력 필요',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1800);return}try{const obj=await decryptPayload(s,enc);if(obj){let txt='';if(obj.type==='text')txt=obj.content;else if(obj.type==='emoji')txt=obj.content;else if(obj.type==='media')txt='[이미지]';else if(obj.type==='file_start')txt=`📁 ${obj.name} (${fmtB(obj.size)})`;if(!txt)return;ctx.clearRect(0,0,bw,bh);const grad=ctx.createLinearGradient(0,0,bw,bh);if(who==='me'){grad.addColorStop(0,'rgba(109,143,240,0.7)');grad.addColorStop(1,'rgba(130,100,240,0.7)')}else{grad.addColorStop(0,'rgba(22,30,44,0.9)');grad.addColorStop(1,'rgba(28,36,52,0.9)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#e6eaf0';ctx.font='15px Inter';ctx.textBaseline='middle';wrapText(ctx,txt,12,bh/2,bw-24,21);currentRevealed=c;const buf=te.encode(txt);new Uint8Array(buf).fill(0)}}catch(e){ctx.clearRect(0,0,bw,bh);ctx.fillStyle='#1a2332';ctx.beginPath();ctx.roundRect(0,0,bw,bh,16);ctx.fill();ctx.fillStyle='#f06c6c';ctx.font='12px Inter';ctx.textAlign='center';ctx.fillText('복호화 실패',bw/2,bh/2);currentRevealed=c;setTimeout(()=>{if(currentRevealed===c)clear()},1500)}},400)});const up=()=>{clearTimeout(timer);if(currentRevealed===c)clear()};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);c.addEventListener('pointerleave',up);md.appendChild(c);md.scrollTop=md.scrollHeight}
+function drawLocked(ctx,w,h,who){ctx.clearRect(0,0,w,h);const grad=ctx.createLinearGradient(0,0,w,h);if(who==='me'){grad.addColorStop(0,'rgba(109,143,240,0.3)');grad.addColorStop(1,'rgba(130,100,240,0.3)')}else{grad.addColorStop(0,'rgba(22,30,44,0.7)');grad.addColorStop(1,'rgba(28,36,52,0.7)')}ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(0,0,w,h,16);ctx.fill();ctx.fillStyle='#8892b0';ctx.font='24px Inter';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔒',w/2,h/2-6);ctx.font='10px Inter';ctx.fillText('길게 눌러 보기',w/2,h/2+18)}
 function wrapText(ctx,t,x,y,mw,lh){const ch=t.split('');const ls=[];let cl='';for(const c of ch){const tl=cl+c;if(ctx.measureText(tl).width>mw&&cl){ls.push(cl);cl=c}else cl=tl}if(cl)ls.push(cl);const th=ls.length*lh;let sy=y-th/2+lh/2;for(const l of ls){ctx.fillText(l,x,sy);sy+=lh}}
 function clearRevealed(pid){if(pid!==ap)return;document.querySelectorAll('.bubble-canvas').forEach(c=>{const ctx=c.getContext('2d');const w=parseInt(c.style.width);const h=parseInt(c.style.height);const who=c.parentElement?.dataset.who||'other';drawLocked(ctx,w,h,who)});currentRevealed=null}
 
@@ -409,8 +303,6 @@ function copyTextById(id){const el=document.getElementById(id);const t=el.tagNam
 
 // 초기화
 buildEmojiPicker();renderContactList();checkHash();showView('simpleMode');
-
-// roundRect 폴리필
 if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r={tl:r,tr:r,br:r,bl:r};this.beginPath();this.moveTo(x+r.tl,y);this.lineTo(x+w-r.tr,y);this.quadraticCurveTo(x+w,y,x+w,y+r.tr);this.lineTo(x+w,y+h-r.br);this.quadraticCurveTo(x+w,y+h,x+w-r.br,y+h);this.lineTo(x+r.bl,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r.bl);this.lineTo(x,y+r.tl);this.quadraticCurveTo(x,y,x+r.tl,y);this.closePath()}}
 </script>
 </body>
