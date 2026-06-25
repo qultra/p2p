@@ -967,33 +967,67 @@
         function closeNameModal() { document.getElementById('nameModal').classList.add('hidden'); }
 
         function confirmNewChat() {
-            const name = document.getElementById('peerNameInput').value.trim();
-            if (!name) return alert('이름을 입력해주세요.');
-            closeNameModal();
-            const peerId = genUUID();
-            addContact(peerId, name);
-            activePeerId = peerId;
-            const sess = getOrCreateSession(peerId);
-            sess.isOfferer = true;
-            showView('offerPanel');
-            document.getElementById('offerSpinner').style.display = 'inline-block';
-            document.getElementById('offerLinkDisplay').textContent = '생성 중...';
-            initPC(peerId);
-            sess.dc = sess.pc.createDataChannel('chat', { ordered: true });
-            sess.typingDC = sess.pc.createDataChannel('typing', { ordered: false, maxRetransmits: 0 });
-            // 추가 보조 채널 (삭제 전파용)
-            sess.auxDC = sess.pc.createDataChannel('aux', { ordered: false, maxRetransmits: 0 });
-            setupDC(peerId);
-            setupTypingDC(peerId);
-            setupAuxDC(peerId);
-            sess.pc.createOffer().then(o => sess.pc.setLocalDescription(o)).then(() => waitIce(sess.pc).then(() => {
-                document.getElementById('offerSpinner').style.display = 'none';
+    const name = document.getElementById('peerNameInput').value.trim();
+    if (!name) return alert('이름을 입력해주세요.');
+    closeNameModal();
+
+    const peerId = genUUID();
+    addContact(peerId, name);
+    activePeerId = peerId;
+
+    // ★ 중요: offerPanel을 최우선으로 보여줌 (어떤 오류가 나더라도 UI는 유지)
+    showView('offerPanel');
+    const spinner = document.getElementById('offerSpinner');
+    const linkDisplay = document.getElementById('offerLinkDisplay');
+    if (spinner) spinner.style.display = 'inline-block';
+    if (linkDisplay) linkDisplay.textContent = '연결 링크 생성 중... (ICE 수집 대기)';
+
+    // WebRTC 초기화 (오류가 발생해도 패널에 메시지 표시)
+    try {
+        const sess = getOrCreateSession(peerId);
+        sess.isOfferer = true;
+        initPC(peerId);
+        sess.dc = sess.pc.createDataChannel('chat', { ordered: true });
+        sess.typingDC = sess.pc.createDataChannel('typing', { ordered: false, maxRetransmits: 0 });
+        sess.auxDC = sess.pc.createDataChannel('aux', { ordered: false, maxRetransmits: 0 });
+        setupDC(peerId);
+        setupTypingDC(peerId);
+        setupAuxDC(peerId);
+
+        sess.pc.createOffer()
+            .then(o => sess.pc.setLocalDescription(o))
+            .then(() => waitIce(sess.pc))
+            .then(() => {
+                if (spinner) spinner.style.display = 'none';
                 const offerB64 = encodeSDP(sess.pc.localDescription);
-                document.getElementById('offerLinkDisplay').textContent = location.origin + location.pathname +
-                    '#offer=' + offerB64 + '&peer=' + peerId;
-            }));
-            renderContactList();
-        }
+                if (linkDisplay) linkDisplay.textContent =
+                    location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
+            })
+            .catch(err => {
+                // ICE 수집 실패 시에도 링크를 생성 (부분적으로라도)
+                if (spinner) spinner.style.display = 'none';
+                console.warn('ICE 수집 실패:', err);
+                if (sess.pc && sess.pc.localDescription) {
+                    const offerB64 = encodeSDP(sess.pc.localDescription);
+                    if (linkDisplay) {
+                        linkDisplay.textContent =
+                            location.origin + location.pathname + '#offer=' + offerB64 + '&peer=' + peerId;
+                        linkDisplay.style.color = '#f97070';
+                    }
+                    alert('ICE 수집에 실패했지만 임시 링크를 생성했습니다.\n상대방이 직접 연결하지 못할 수 있습니다.');
+                } else {
+                    if (linkDisplay) linkDisplay.textContent = '링크 생성 실패. 페이지를 새로고침 후 다시 시도해주세요.';
+                }
+            });
+    } catch (e) {
+        // initPC 또는 데이터 채널 생성 오류 처리
+        if (spinner) spinner.style.display = 'none';
+        if (linkDisplay) linkDisplay.textContent = '초기화 오류: ' + e.message;
+        console.error('confirmNewChat 오류:', e);
+    }
+
+    renderContactList();
+}
 
         function showJoinPanel() { showView('answerPanel');
             document.getElementById('remoteOfferSDP').value = ''; }
