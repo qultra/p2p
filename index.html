@@ -3,239 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🔐 인스타 DM 암호화 툴 + P2P 메신저</title>
+  <title>🔒 초간편 비밀 DM 북마크릿</title>
   <style>
-    :root {
-      --bg: #06090f; --surface: #0f141e; --text: #e0e5f0; --sub: #8892b0;
-      --accent: #5b8df0; --danger: #f97070; --success: #45d68a; --border: #1a2332;
-      --radius: 20px; --radius-sm: 14px;
-    }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100dvh; padding: 10px;
-    }
-    .container {
-      width: 100%; max-width: 520px; height: 95dvh;
-      background: var(--surface); border-radius: 30px;
-      box-shadow: 0 30px 70px rgba(0,0,0,0.7);
-      display: flex; flex-direction: column; overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .header { padding:14px 20px; backdrop-filter:blur(20px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-    .header h1 { font-size:1.1rem; background:linear-gradient(135deg,#90b4ff,#b794f4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .main-content { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
-    .card { background:rgba(15,20,30,0.9); backdrop-filter:blur(14px); border-radius:var(--radius); padding:18px; border:1px solid var(--border); }
-    .btn {
-      display:inline-flex; align-items:center; justify-content:center;
-      background:rgba(255,255,255,0.05); color:white;
-      border:1px solid var(--border); padding:14px 20px;
-      border-radius:var(--radius-sm); cursor:pointer; font-weight:600;
-      font-size:0.95rem; transition:0.2s; width:100%;
-    }
-    .btn.primary { background:var(--accent); border:none; }
-    .btn-small { padding:8px 14px; font-size:0.8rem; width:auto; }
-    input, textarea {
-      width:100%; background:#0a0f18; color:var(--text);
-      border:1px solid var(--border); border-radius:var(--radius-sm);
-      padding:14px; font-size:16px; outline:none;
-    }
-    .hidden { display:none !important; }
-    .msg { display:flex; flex-direction:column; margin:4px 0; }
-    .msg.me { align-items:flex-end; } .msg.other { align-items:flex-start; } .msg.system { align-items:center; }
-    .bubble {
-      max-width:83%; padding:10px 16px; border-radius:20px;
-      background:rgba(22,30,44,0.85); border:1px solid rgba(255,255,255,0.05);
-      word-break:break-word;
-    }
-    .msg.me .bubble { background:linear-gradient(140deg,rgba(74,130,250,0.5),rgba(124,92,240,0.5)); }
-    #messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
-    .input-bar { display:flex; gap:6px; padding:8px 0; }
-    .send-btn { background:var(--accent); color:white; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    body { font-family: system-ui, sans-serif; background: #0a0e14; color: #cdd6e0; padding: 20px; }
+    .box { max-width: 500px; margin: 0 auto; background: #141b22; border-radius: 20px; padding: 24px; border: 1px solid #1e293b; }
+    h1 { font-size: 1.3rem; text-align: center; margin-bottom: 12px; }
+    .code { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; font-family: monospace; font-size: 0.65rem; word-break: break-all; line-height: 1.4; height: 100px; overflow-y: auto; }
+    button { width: 100%; padding: 14px; background: #5190f0; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; cursor: pointer; }
+    button.copy { background: #2e3b4e; }
+    ul { margin: 12px 0; padding-left: 20px; color: #8895a5; font-size: 0.85rem; }
+    li { margin: 6px 0; }
+    .note { background: #1e293b; padding: 10px; border-radius: 10px; font-size: 0.8rem; margin-top: 16px; color: #8895a5; }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header"><h1>🔐 인스타 DM 암호화 툴</h1><span id="connLabel">수동 모드</span></div>
-  <div class="main-content">
-    <div class="card">
-      <p style="margin-bottom:8px;"><strong>🔑 상대방 공개키</strong> (처음 한 번만 등록)</p>
-      <textarea id="peerPublicKeyInput" rows="2" placeholder="상대에게 받은 공개키를 붙여넣으세요"></textarea>
-      <button class="btn primary" id="savePeerKeyBtn" style="margin-top:8px;">공개키 저장</button>
-      <button class="btn" id="generateMyKeyBtn" style="margin-top:4px;">내 키 생성 및 복사</button>
-      <p id="keyStatus" class="text-sub" style="margin-top:6px; font-size:0.8rem;"></p>
-    </div>
-    <div id="messages"></div>
-    <div class="input-bar">
-      <textarea id="msgInput" rows="1" placeholder="평문 메시지 입력"></textarea>
-      <button class="send-btn" id="sendBtn">➤</button>
-    </div>
-    <div class="card" style="margin-top:0;">
-      <strong>📥 상대 암호문 수신</strong>
-      <textarea id="receivedEncrypted" rows="2" placeholder="받은 암호문을 여기에 붙여넣기"></textarea>
-      <button class="btn primary" id="decryptReceivedBtn" style="margin-top:8px;">복호화하여 표시</button>
-    </div>
-    <button class="btn" id="showBookmarkletBtn">🔖 인스타 DM 북마크릿 코드 받기</button>
-  </div>
-</div>
+  <div class="box">
+    <h1>🔏 인스타 DM 비밀 채팅</h1>
+    <p style="text-align:center; font-size:0.9rem; margin-bottom:16px;">북마크 한 방이면 끝!</p>
+    <div class="code" id="codeArea"></div>
+    <button id="copyBtn" class="copy">📋 코드 복사</button>
 
-<div id="bookmarkletModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:100;">
-  <div class="card" style="max-width:90%;background:var(--surface);">
-    <h3>📌 북마크릿 코드</h3>
-    <p class="text-sub" style="margin:8px 0;">아래 코드를 복사하여 즐겨찾기(북마크) URL로 저장하세요. 인스타 DM 화면에서 실행하면 암호화/복호화 패널이 나타납니다.</p>
-    <textarea id="bookmarkletCode" rows="6" readonly style="font-size:0.7rem;"></textarea>
-    <button class="btn primary" id="copyBookmarkletBtn" style="margin-top:8px;">코드 복사</button>
-    <button class="btn" id="closeBookmarkletBtn" style="margin-top:4px;">닫기</button>
+    <div class="note" style="margin-top:20px;">
+      <strong>📱 iOS Safari에서 사용하기</strong>
+      <ul>
+        <li>코드를 복사한 뒤, Safari 주소창에 <code>javascript:</code>를 먼저 입력하고 붙여넣기</li>
+        <li>또는 <strong>공유 → 책갈피 추가 → 저장한 책갈피를 편집</strong>하여 URL을 위 코드로 변경</li>
+        <li>혹은 <strong>단축어 앱</strong>에서 <em>Safari에서 JavaScript 실행</em> 동작에 붙여넣기</li>
+      </ul>
+    </div>
   </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const te = new TextEncoder(), td = new TextDecoder();
-  const b64url = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  const fromB64url = s => { s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s), c=>c.charCodeAt(0)).buffer; };
-  const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+  // 가장 간결한 북마크릿 코드 (비밀번호 프롬프트 → 버튼 추가 → 자동 복호화)
+  const bookmarklet = `javascript:(function(){
+    var p=sessionStorage.getItem('_pw')||prompt('비밀번호 입력:','');
+    if(!p)return;
+    sessionStorage.setItem('_pw',p);
 
-  let myKey = null;          // { privateKey, publicKey (CryptoKey), publicKeyBase64 }
-  let peerPublicKey = null;  // CryptoKey
+    var enc=async(t)=>{var s=crypto.getRandomValues(new Uint8Array(16)),
+    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
+    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt']),
+    iv=crypto.getRandomValues(new Uint8Array(12)),
+    ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},dk,new TextEncoder().encode(t)),
+    c=new Uint8Array(16+12+ct.byteLength);c.set(s,0);c.set(iv,16);c.set(new Uint8Array(ct),28);
+    return'🔒:'+btoa(String.fromCharCode(...c)).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');};
 
-  const keyStatus = document.getElementById('keyStatus');
-  const messagesEl = document.getElementById('messages');
+    var dec=async(f)=>{var b=Uint8Array.from(atob(f.slice(2).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)),
+    s=b.slice(0,16),iv=b.slice(16,28),ct=b.slice(28),
+    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
+    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']),
+    pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},dk,ct);
+    return new TextDecoder().decode(pt);};
 
-  // 내 키 생성
-  async function generateMyKey() {
-    const kp = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-521'}, true, ['deriveKey','deriveBits']);
-    const pubRaw = await crypto.subtle.exportKey('raw', kp.publicKey);
-    const pubB64 = b64url(pubRaw);
-    myKey = { privateKey: kp.privateKey, publicKey: kp.publicKey, publicKeyBase64: pubB64 };
-    return pubB64;
-  }
+    var t=setInterval(function(){
+      var inp=document.querySelector('[contenteditable="true"][role="textbox"]');
+      var snd=document.querySelector('[data-testid="send-button"], [aria-label="Send"]');
+      if(inp&&snd&&!document.getElementById('__eBtn')){
+        clearInterval(t);
+        var btn=document.createElement('button');btn.id='__eBtn';btn.textContent='🔒 전송';
+        btn.style='margin-left:6px;padding:8px 12px;background:#5190f0;color:#fff;border:none;border-radius:16px;font-weight:bold;cursor:pointer;';
+        snd.parentNode.insertBefore(btn,snd.nextSibling);
+        btn.onclick=async function(e){e.preventDefault();e.stopPropagation();
+          var txt=inp.textContent.trim();if(txt){inp.textContent=await enc(txt);
+          inp.dispatchEvent(new Event('input',{bubbles:true}));setTimeout(function(){snd.click();},80);}};
+      }
+    },500);
+    setTimeout(function(){clearInterval(t);},10000);
 
-  // 상대 공개키 저장
-  async function savePeerKey() {
-    const b64 = document.getElementById('peerPublicKeyInput').value.trim();
-    if (!b64) return alert('공개키를 입력하세요.');
-    try {
-      const raw = fromB64url(b64);
-      peerPublicKey = await crypto.subtle.importKey('raw', raw, {name:'ECDH', namedCurve:'P-521'}, true, []);
-      keyStatus.textContent = '✅ 상대 공개키 등록 완료';
-      addMsg('system', '상대방 공개키가 등록되었습니다.');
-    } catch(e) {
-      alert('올바른 공개키가 아닙니다.');
-    }
-  }
+    var mo=new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType===1){
+            var msgs=n.querySelectorAll?n.querySelectorAll('div[dir="auto"]'):[];
+            if(n.matches&&n.matches('div[dir="auto"]')) msgs=[n];
+            msgs.forEach(async function(el){
+              if(el.dataset._done)return;var txt=el.textContent.trim();
+              if(txt.startsWith('🔒:')){try{el.textContent=await dec(txt);el.style.color='#4fd68a';el.dataset._done=1;}catch(e){}}
+            });
+          }
+        });
+      });
+    });
+    mo.observe(document.body,{childList:true,subtree:true});
+  })();`.replace(/\s+/g, ''); // 모든 공백 제거 (가장 짧게)
 
-  // ECDH로 공유 비밀키 유도
-  async function deriveSharedSecret() {
-    if (!myKey || !peerPublicKey) throw new Error('키가 준비되지 않았습니다.');
-    const derived = await crypto.subtle.deriveBits({name:'ECDH', public: peerPublicKey}, myKey.privateKey, 521);
-    const hash = await crypto.subtle.digest('SHA-256', derived);
-    return await crypto.subtle.importKey('raw', hash, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
-  }
+  document.getElementById('codeArea').textContent = bookmarklet;
 
-  // 암호화
-  async function encrypt(plain) {
-    const key = await deriveSharedSecret();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, te.encode(plain));
-    return b64url(new Uint8Array([...iv, ...new Uint8Array(ct)]));
-  }
-
-  // 복호화
-  async function decrypt(cipherB64) {
-    const key = await deriveSharedSecret();
-    const buf = fromB64url(cipherB64);
-    const iv = buf.slice(0,12), ct = buf.slice(12);
-    const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
-    return td.decode(plain);
-  }
-
-  function addMsg(who, text) {
-    const d = document.createElement('div');
-    d.className = 'msg '+(who==='me'?'me':who==='other'?'other':'system');
-    const b = document.createElement('div'); b.className = 'bubble'; b.textContent = text;
-    d.appendChild(b);
-    messagesEl.appendChild(d);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  // 전송 버튼
-  document.getElementById('sendBtn').addEventListener('click', async ()=>{
-    const plain = document.getElementById('msgInput').value.trim();
-    if (!plain) return;
-    if (!myKey || !peerPublicKey) return alert('먼저 내 키를 생성하고 상대방 공개키를 등록하세요.');
-    try {
-      const encrypted = await encrypt(plain);
-      await navigator.clipboard.writeText(encrypted);
-      addMsg('me', plain);
-      document.getElementById('msgInput').value = '';
-      // 암호문을 별도 표시하지 않고 자동 복사되었음을 알림
-      alert('암호화된 메시지가 클립보드에 복사되었습니다. 인스타 DM에 붙여넣으세요.');
-    } catch(e) {
-      alert('암호화 실패: '+e.message);
-    }
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(bookmarklet).then(() => alert('✅ 복사 완료! 이제 북마크에 추가하세요.'));
   });
-
-  // 수동 수신 복호화
-  document.getElementById('decryptReceivedBtn').addEventListener('click', async ()=>{
-    const cipherB64 = document.getElementById('receivedEncrypted').value.trim();
-    if (!cipherB64) return;
-    if (!myKey || !peerPublicKey) return alert('키를 먼저 설정하세요.');
-    try {
-      const plain = await decrypt(cipherB64);
-      addMsg('other', plain);
-      document.getElementById('receivedEncrypted').value = '';
-    } catch(e) {
-      alert('복호화 실패. 암호문이 올바른지, 상대 공개키가 맞는지 확인하세요.');
-    }
-  });
-
-  // 내 키 생성 버튼
-  document.getElementById('generateMyKeyBtn').addEventListener('click', async ()=>{
-    const pubB64 = await generateMyKey();
-    await navigator.clipboard.writeText(pubB64);
-    alert('내 공개키가 생성되어 클립보드에 복사되었습니다. 상대방에게 전달하세요.\n(이 페이지에서도 계속 사용됩니다)');
-    keyStatus.textContent = '🔑 내 키 생성됨. 상대방에게 공개키를 보내주세요.';
-  });
-
-  document.getElementById('savePeerKeyBtn').addEventListener('click', savePeerKey);
-
-  // 북마크릿 모달
-  document.getElementById('showBookmarkletBtn').addEventListener('click', ()=>{
-    const code = generateBookmarkletCode();
-    document.getElementById('bookmarkletCode').value = code;
-    document.getElementById('bookmarkletModal').classList.remove('hidden');
-  });
-  document.getElementById('closeBookmarkletBtn').addEventListener('click', ()=>{
-    document.getElementById('bookmarkletModal').classList.add('hidden');
-  });
-  document.getElementById('copyBookmarkletBtn').addEventListener('click', ()=>{
-    navigator.clipboard.writeText(document.getElementById('bookmarkletCode').value);
-    alert('북마크릿 코드가 복사되었습니다. 즐겨찾기 URL에 붙여넣으세요.');
-  });
-
-  function generateBookmarkletCode() {
-    // 북마크릿: 인스타 DM 페이지에서 암호화/복호화 UI를 띄우는 즉시 실행 함수
-    return `javascript:(function(){
-      var s=document.createElement('script');
-      s.src='data:text/javascript;base64,${btoa(`
-        (function(){
-          if(document.getElementById('encTool')) return;
-          var d=document.createElement('div');
-          d.id='encTool';
-          d.innerHTML='<div style="position:fixed;bottom:20px;right:20px;z-index:99999;background:#1a2332;color:white;padding:16px;border-radius:16px;width:300px;box-shadow:0 10px 30px rgba(0,0,0,0.5);"><textarea id="encInput" rows="2" placeholder="평문 또는 암호문" style="width:100%;background:#0a0f18;color:white;border:1px solid #5b8df0;border-radius:12px;padding:10px;margin-bottom:8px;"></textarea><button id="encSendBtn" style="background:#5b8df0;color:white;padding:10px;border:none;border-radius:12px;width:100%;margin-bottom:4px;">📤 암호화 & 복사</button><button id="encDecBtn" style="background:#45d68a;color:white;padding:10px;border:none;border-radius:12px;width:100%;">📥 복호화</button></div>';
-          document.body.appendChild(d);
-          // 이 북마크릿은 사전에 공유된 공개키/개인키 정보를 localStorage에서 읽어와야 함
-          // 여기서는 간단히 로컬 스토리지에 키가 저장되어 있다고 가정 (사용 전에 미리 저장 필요)
-          var myKey = JSON.parse(localStorage.getItem('enc_myKey')||'null');
-          var peerKey = JSON.parse(localStorage.getItem('enc_peerKey')||'null');
-          // ... (실제 구현은 생략, 원리는 동일)
-        })();
-      `)}';
-      document.body.appendChild(s);
-    })();`;
-  }
 });
 </script>
 </body>
