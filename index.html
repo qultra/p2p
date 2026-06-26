@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0, minimum-scale=1.0">
     <title>P2P 비밀 메신저 – 절대 보안 완전판</title>
-    <!-- CSP: unsafe-inline을 최소화하고 nonce 기반으로 구성하고 싶지만 단일 정적 HTML에서는 불가능하므로 
-         최고 수준의 보안을 위해 다른 방어 계층(가상 키보드, 캔버스 렌더링, 메모리 클리어 등)으로 보완합니다. -->
+    <!-- CSP: 보안을 위해 unsafe-inline을 허용하지만 다른 모든 방어 계층으로 보완합니다 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
     <meta name="referrer" content="no-referrer">
     <style>
@@ -76,10 +75,9 @@
         .flex { display:flex; }
         .text-center { text-align:center; }
         .text-sub { color:var(--sub); font-size:0.82rem; }
-        .mt-4 { margin-top:4px; } .mt-8 { margin-top:8px; } .mt-12 { margin-top:12px; }
-        .mb-4 { margin-bottom:4px; } .mb-8 { margin-bottom:8px; } .mb-12 { margin-bottom:12px; }
+        .mt-12 { margin-top:12px; }
+        .mb-12 { margin-bottom:12px; }
         .gap-8 { gap:8px; }
-        .w-full { width:100%; }
         .flex-1 { flex:1; }
         .text-danger { color:var(--danger); }
         .font-bold { font-weight:600; }
@@ -112,21 +110,45 @@
 </head>
 <body>
 <div class="container">
-    <div class="header"><h1>🔐 P2P 비밀채팅</h1><div class="status-bar"><span id="connDot" class="dot off"></span><span id="connLabel">오프라인</span></div></div>
+    <div class="header">
+        <h1>🔐 P2P 비밀채팅</h1>
+        <div class="status-bar">
+            <span id="connDot" class="dot off"></span>
+            <span id="connLabel">오프라인</span>
+        </div>
+    </div>
     <div class="main-content" id="mainArea">
+        <!-- 홈 화면 -->
         <div id="simpleMode" class="view">
             <div class="card text-center">
                 <h3 class="mb-4">서버 없이 완벽한 익명성</h3>
                 <p class="text-sub mb-12">연결 끊겨도 자동 복구 · 오프라인 메시지 큐</p>
-                <button class="btn primary" id="btnNewChat"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>새 채팅 생성</button>
-                <button class="btn mt-12" id="btnJoinChat"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>초대 링크로 참가</button>
+                <button class="btn primary" id="btnNewChat">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                    새 채팅 생성
+                </button>
+                <button class="btn mt-12" id="btnJoinChat">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    초대 링크로 참가
+                </button>
             </div>
             <div class="font-bold text-sub mb-8">📋 대화 목록</div>
             <div class="contact-list" id="contactList"></div>
         </div>
+
+        <!-- 이름 입력 모달 -->
         <div id="nameModal" class="modal hidden">
-            <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="상대방 이름 입력"><div class="mt-12 flex gap-8"><button class="btn primary flex-1" id="btnConfirmName">확인</button><button class="btn flex-1" id="btnCancelName">취소</button></div></div>
+            <div class="modal-content">
+                <h3>✨ 새 채팅</h3>
+                <input type="text" id="peerNameInput" placeholder="상대방 이름 입력">
+                <div class="mt-12 flex gap-8">
+                    <button class="btn primary flex-1" id="btnConfirmName">확인</button>
+                    <button class="btn flex-1" id="btnCancelName">취소</button>
+                </div>
+            </div>
         </div>
+
+        <!-- Offer 패널 -->
         <div id="offerPanel" class="view hidden">
             <div class="card text-center">
                 <div class="spinner mb-12" id="offerSpinner" style="display:none;"></div>
@@ -135,20 +157,35 @@
                 <div class="link-box" id="offerLinkDisplay">생성 중...</div>
                 <button class="btn mt-12" id="btnCopyOffer">링크 복사</button>
                 <p class="text-sub mt-12">상대가 보낸 Answer 링크를 아래에 붙여넣으세요.</p>
-                <input type="text" id="answerLinkInput" placeholder="Answer 링크 입력..."><button class="btn primary mt-12" id="btnApplyAnswer">연결 완료</button>
+                <input type="text" id="answerLinkInput" placeholder="Answer 링크 입력...">
+                <button class="btn primary mt-12" id="btnApplyAnswer">연결 완료</button>
                 <button class="btn mt-12" id="btnOfferHome">홈으로</button>
             </div>
         </div>
+
+        <!-- Answer 패널 -->
         <div id="answerPanel" class="view hidden">
-            <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea><button class="btn primary mt-12" id="btnCreateAnswer">연결 시작</button></div>
+            <div class="card">
+                <strong>📥 초대 링크 붙여넣기</strong>
+                <textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea>
+                <button class="btn primary mt-12" id="btnCreateAnswer">연결 시작</button>
+            </div>
             <button class="btn mt-12" id="btnAnswerHome">홈으로</button>
         </div>
+
+        <!-- 채팅 화면 -->
         <div id="chatScreen" class="view hidden">
             <div class="chat-header">
-                <button class="btn-small" id="btnChatBack"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+                <button class="btn-small" id="btnChatBack">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
                 <span class="chat-title" id="chatTitle">채팅</span>
-                <button class="btn-small" id="btnRename"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-                <button class="btn-small danger" id="btnDestroy"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+                <button class="btn-small" id="btnRename">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </button>
+                <button class="btn-small danger" id="btnDestroy">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
             </div>
             <div id="secCard" class="card security-card hidden">
                 <span>🔒</span><span id="sessionFingerprint" class="fingerprint"></span>
@@ -156,7 +193,7 @@
             <div id="pwPrompt" class="card text-center">
                 <strong>🔐 채팅방 암호 입력</strong>
                 <div id="vkeyboardContainer" class="vkeyboard"></div>
-                <input type="password" id="chatPasswordInput" placeholder="가상 키보드 사용" style="display:none;">
+                <input type="password" id="chatPasswordInput" placeholder="가상 키보드로 입력" autocomplete="off">
                 <button class="btn primary mt-12" id="btnSubmitPassword">암호 설정</button>
                 <p class="text-sub mt-12">암호가 없으면 수신된 암호문만 표시됩니다.</p>
                 <p id="pwError" class="text-sub text-danger hidden"></p>
@@ -183,29 +220,38 @@
         </div>
     </div>
 </div>
+
+<!-- Answer 공유 모달 -->
 <div id="answerModal" class="modal hidden">
     <div class="modal-content">
         <h3>📤 내 Answer 링크</h3>
         <p class="text-sub mb-12">이 링크를 상대에게 전송하면 연결됩니다.</p>
         <div class="link-box" id="answerModalLink"></div>
-        <div class="flex gap-8"><button class="btn primary flex-1" id="btnCopyAnswerModal">📋 복사</button><button class="btn flex-1" id="btnCloseAnswerModal">닫기</button></div>
+        <div class="flex gap-8">
+            <button class="btn primary flex-1" id="btnCopyAnswerModal">📋 복사</button>
+            <button class="btn flex-1" id="btnCloseAnswerModal">닫기</button>
+        </div>
     </div>
 </div>
+
+<!-- 마스터 암호 설정 모달 -->
 <div id="masterModal" class="modal">
     <div class="modal-content">
         <h3>🔐 마스터 암호 설정</h3>
         <p class="text-sub mb-12">모든 로컬 데이터를 암호화합니다. 잊으면 복구 불가능합니다.</p>
         <div id="masterVK" class="vkeyboard"></div>
-        <input type="password" id="masterPass" style="display:none;">
+        <input type="password" id="masterPass" placeholder="가상 키보드로 입력" autocomplete="off">
         <button class="btn primary mt-12" id="btnMasterSet">설정</button>
         <p id="masterErr" class="text-sub text-danger hidden">8자 이상 입력하세요.</p>
     </div>
 </div>
+
+<!-- 마스터 암호 잠금 해제 모달 -->
 <div id="unlockModal" class="modal">
     <div class="modal-content">
         <h3>🔐 마스터 암호 입력</h3>
         <div id="unlockVK" class="vkeyboard"></div>
-        <input type="password" id="unlockPass" style="display:none;">
+        <input type="password" id="unlockPass" placeholder="가상 키보드로 입력" autocomplete="off">
         <button class="btn primary mt-12" id="btnUnlock">잠금 해제</button>
         <p id="unlockErr" class="text-sub text-danger hidden">잘못된 암호입니다.</p>
     </div>
@@ -214,21 +260,18 @@
 <script>
 (function() {
     'use strict';
-    // ─────────────────────────────────────────────────────────────
-    //  P2P 비밀 메신저 – 절대 보안 완전판
-    //  모든 기능 100% 작동 보장, 암호화·보안 웹 최고 수준
-    // ─────────────────────────────────────────────────────────────
 
-    // 보안 환경 강화
-    performance.now = orig => () => Math.floor(orig.call(performance)/10)*10;
-    if (typeof SharedArrayBuffer !== 'undefined') {
-        Object.defineProperty(window, 'SharedArrayBuffer', { get: () => undefined });
-    }
+    // ──────────────────────────────────────── 보안 환경 강화 ────────────────────────────────────────
+    const origNow = performance.now.bind(performance);
+    performance.now = () => Math.floor(origNow() / 10) * 10;
+    if (typeof SharedArrayBuffer !== 'undefined') Object.defineProperty(window, 'SharedArrayBuffer', { get: () => undefined });
 
     let devToolsOpen = false;
     const devToolsCheck = () => {
-        const t = 160;
-        if (window.outerWidth - window.innerWidth > t || window.outerHeight - window.innerHeight > t) {
+        const threshold = 160;
+        const widthExceed = window.outerWidth - window.innerWidth > threshold;
+        const heightExceed = window.outerHeight - window.innerHeight > threshold;
+        if (widthExceed || heightExceed) {
             if (!devToolsOpen) { devToolsOpen = true; onDevToolsOpened(); }
         } else if (devToolsOpen) { devToolsOpen = false; onDevToolsClosed(); }
     };
@@ -247,16 +290,12 @@
     };
     setInterval(devToolsCheck, 500);
 
-    // 콘솔 무력화
     const noop = () => {};
-    Object.defineProperty(window, 'console', {
-        value: new Proxy({}, { get: () => noop }),
-        writable: false, configurable: false
-    });
+    Object.defineProperty(window, 'console', { value: new Proxy({}, { get: () => noop }), writable: false, configurable: false });
 
-    let debuggerInterval = setInterval(() => {
+    setInterval(() => {
         if (devToolsOpen) {
-            setTimeout(() => { if (devToolsOpen) { while(devToolsOpen){} } }, 2000);
+            setTimeout(() => { if (devToolsOpen) while(devToolsOpen) {} }, 2000);
             try { debugger; } catch(e) {}
         }
     }, 300);
@@ -279,14 +318,13 @@
             e.preventDefault(); e.stopPropagation(); return false;
         }
     }, true);
-
     new MutationObserver(mutations => {
         for (const m of mutations) for (const n of m.addedNodes) {
             if (n.nodeType === 1 && ['SCRIPT','IFRAME','LINK','META'].includes(n.tagName)) n.remove();
         }
     }).observe(document.documentElement, {childList:true, subtree:true});
 
-    // 유틸리티
+    // ──────────────────────────────────────── 유틸리티 ────────────────────────────────────────────
     const enc = new TextEncoder(), dec = new TextDecoder();
     const b64url = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
     const unb64 = s => { s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer; };
@@ -309,7 +347,7 @@
     let masterKey = null, db = null;
     const messageKeys = new Map();
 
-    // IndexedDB 암호화 저장소
+    // ──────────────────────────────────────── IndexedDB 암호화 저장소 ─────────────────────────────
     async function openDB() {
         return new Promise((res,rej) => {
             const r = indexedDB.open('sec_msg',1);
@@ -324,7 +362,7 @@
         return {iv:b64url(iv), ct:b64url(ct)};
     }
     async function decStore(data) {
-        const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(unb64(data.iv))}, masterKey, new Uint8Array(unb64(data.ct)));
+        const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(unb64(data.iv))}, masterKey, new Uint8Array(unb64(data.ct)));
         return dec.decode(pt);
     }
     async function setItem(k,v) {
@@ -347,13 +385,10 @@
         });
     }
     async function delItem(k) {
-        if (db) {
-            const tx = db.transaction('s','readwrite');
-            tx.objectStore('s').delete(k);
-        }
+        if (db) { const tx = db.transaction('s','readwrite'); tx.objectStore('s').delete(k); }
     }
 
-    // 마스터 암호 및 가상 키보드
+    // ──────────────────────────────────────── 마스터 암호 및 가상 키보드 ──────────────────────────
     function buildVirtualKeyboard(container, inputEl) {
         container.innerHTML = '';
         const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~';
@@ -408,7 +443,7 @@
                 try {
                     const km = await crypto.subtle.importKey('raw', enc.encode(inp.value), 'PBKDF2', false, ['deriveKey']);
                     const dk = await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:20000000,hash:'SHA-512'}, km, {name:'AES-GCM',length:256}, false, ['encrypt','decrypt']);
-                    const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(unb64(check.iv))}, dk, new Uint8Array(unb64(check.ct)));
+                    const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(unb64(check.iv))}, dk, new Uint8Array(unb64(check.ct)));
                     if (dec.decode(pt) === 'OK') {
                         masterKey = dk;
                         modal.style.display = 'none';
@@ -421,8 +456,8 @@
         });
     }
 
-    // 연락처 및 큐 관리
-    async function getContacts() { const d=await getItem('contacts'); return d ? JSON.parse(d) : []; }
+    // ──────────────────────────────────────── 연락처 및 큐 관리 ───────────────────────────────────
+    async function getContacts() { const d = await getItem('contacts'); return d ? JSON.parse(d) : []; }
     async function saveContacts(cs) { await setItem('contacts', JSON.stringify(cs)); }
     async function addContact(id, name) {
         let cs = await getContacts();
@@ -444,7 +479,7 @@
         if (location.hash) history.replaceState(null, '', location.pathname);
     }
 
-    // 세션 관리
+    // ──────────────────────────────────────── 세션 관리 ──────────────────────────────────────────
     function getSession(pid) {
         if (!sessions.has(pid)) sessions.set(pid, {
             pc:null, dc:null, typingDC:null, typingKey:null, isOfferer:false,
@@ -458,7 +493,7 @@
         return sessions.get(pid);
     }
 
-    // UI 전환
+    // ──────────────────────────────────────── UI 전환 ───────────────────────────────────────────
     function showView(v) {
         document.querySelectorAll('.view').forEach(e => e.classList.add('hidden'));
         const t = document.getElementById(v);
@@ -478,6 +513,7 @@
         updateConn(sess.online);
         document.getElementById('secCard').style.display = (sess.rootKey && sess.confirmed) ? 'flex' : 'none';
         document.getElementById('pwPrompt').style.display = (sess.rootKey && sess.confirmed) ? 'none' : 'block';
+        if (!sess.rootKey || !sess.confirmed) document.getElementById('chatPasswordInput').value = '';
         renderContacts();
     }
     function goHome() {
@@ -495,7 +531,7 @@
         renderContacts();
     }
 
-    // WebRTC 및 암호화 핵심
+    // ──────────────────────────────────────── WebRTC 및 암호화 핵심 ───────────────────────────────
     function initPC(pid) {
         const s = getSession(pid);
         if (s.pc) s.pc.close();
@@ -584,14 +620,14 @@
         }
         const pw = document.getElementById('chatPasswordInput').value.trim();
         if (!pw) {
-            document.getElementById('pwError').textContent = '암호 입력';
+            document.getElementById('pwError').textContent = '암호를 입력하세요.';
             document.getElementById('pwError').style.display = 'block';
             return;
         }
         s.password = pw;
         if (s.salt && s.ourEcdh && s.peerEcdh) await deriveSession(activeId);
         else {
-            document.getElementById('pwError').textContent = '보안 연결 준비 중';
+            document.getElementById('pwError').textContent = '보안 연결 준비 중입니다. 잠시 후 다시 시도하세요.';
             document.getElementById('pwError').style.display = 'block';
         }
     }
@@ -629,7 +665,7 @@
                 document.getElementById('pwError').style.display = 'none';
             }
         } catch(e) {
-            if (pid === activeId) { document.getElementById('pwError').textContent = '암호 불일치'; document.getElementById('pwError').style.display = 'block'; }
+            if (pid === activeId) { document.getElementById('pwError').textContent = '암호가 일치하지 않습니다.'; document.getElementById('pwError').style.display = 'block'; }
         }
     }
     async function sendConfirm(pid) {
@@ -712,12 +748,13 @@
         return obj;
     }
 
-    // 메시지 송수신
+    // ──────────────────────────────────────── 메시지 송수신 ──────────────────────────────────────
     async function sendText() {
         if (!activeId || isDestroyed(activeId)) return;
         const s = getSession(activeId);
         const inp = document.getElementById('msgInput');
-        const txt = inp.value.trim(); if (!txt) return;
+        const txt = inp.value.trim();
+        if (!txt) return;
         const id = genUUID();
         await sendPayload(s, {type:'text', content:txt, id}, txt, id);
         inp.value = '';
@@ -736,9 +773,7 @@
             const enc = await encPayload(s, payload);
             s.dc.send(JSON.stringify({type:'msg', ...enc}));
             addMsg(activeId, plain, 'me', msgId);
-            if (document.visibilityState==='hidden' && Notification.permission==='granted') {
-                new Notification('P2P 비밀채팅', {body:'[새 메시지]'});
-            }
+            if (document.visibilityState==='hidden' && Notification.permission==='granted') new Notification('P2P 비밀채팅', {body:'[새 메시지]'});
         } catch(e) {
             const q = await loadOfflineQueue(activeId);
             q.push({payload, plaintext:plain, id:msgId, ts:Date.now()});
@@ -804,7 +839,7 @@
         else { s.pending.push({plaintext:text, who, msgId}); renderContacts(); }
     }
 
-    // 타이핑 암호화
+    // ──────────────────────────────────────── 타이핑 암호화 ──────────────────────────────────────
     async function encryptTyping(s, state) {
         if (!s.typingKey) return null;
         const iv = rand(12);
@@ -823,7 +858,7 @@
         }
     }
 
-    // 캔버스 기반 복호화
+    // ──────────────────────────────────────── 캔버스 기반 복호화 ────────────────────────────────
     async function revealMessage(bubble) {
         if (!bubble.classList.contains('blur-target') || bubble.classList.contains('locked')) return;
         const msgId = bubble._msgId;
@@ -872,7 +907,7 @@
         } catch(e) {}
     }
 
-    // 메시지 UI
+    // ──────────────────────────────────────── 메시지 UI ─────────────────────────────────────────
     async function appendMessage(text, who, msgId) {
         const c = document.getElementById('messages'), d = document.createElement('div');
         d.className = 'msg ' + (who==='me'?'me':who==='other'?'other':'system');
@@ -914,7 +949,7 @@
         c.scrollTop = c.scrollHeight;
     }
 
-    // 제어 함수들
+    // ──────────────────────────────────────── 제어 함수들 ──────────────────────────────────────
     function lockAllBlurs(d=15000) {
         document.querySelectorAll('.blur-target').forEach(el => { el.classList.add('locked'); el.classList.remove('revealed'); });
         clearTimeout(window._globalBlur);
@@ -985,7 +1020,7 @@
         await trySendDestroy(pid);
     }
 
-    // 연락처 렌더링
+    // ──────────────────────────────────────── 연락처 렌더링 ────────────────────────────────────
     async function renderContacts() {
         const container = document.getElementById('contactList');
         if (!container) return;
@@ -1008,7 +1043,7 @@
         document.getElementById('connLabel').textContent = ok ? '연결됨' : '오프라인';
     }
 
-    // 이모지/미디어/파일
+    // ──────────────────────────────────────── 이모지 / 미디어 / 파일 ────────────────────────────
     const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','❤️','🔥','🎉','💯','😢','😡','🥺','🤯','✨','🍕','🚀','💻','📱','🎵'];
     function buildEmojiPicker() {
         const g = document.getElementById('emojiGrid');
@@ -1139,7 +1174,7 @@
         addMsg(activeId, `📤 ${file.name} 전송 완료`, 'me');
     }
 
-    // URL 해시 처리
+    // ──────────────────────────────────────── URL 해시 처리 ─────────────────────────────────────
     async function checkHash() {
         const h = location.hash.substring(1);
         if (!h) return;
@@ -1192,7 +1227,7 @@
         });
     }
 
-    // 이벤트 바인딩 및 초기화
+    // ──────────────────────────────────────── 이벤트 바인딩 및 초기화 ────────────────────────────
     function bindEvents() {
         document.getElementById('btnNewChat').addEventListener('click', showNameModal);
         document.getElementById('btnJoinChat').addEventListener('click', () => showView('answerPanel'));
