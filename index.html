@@ -13,8 +13,34 @@
       --success: #45d68a; --border: #1a2332; --radius: 20px; --radius-sm: 14px;
       --safe-bottom: env(safe-area-inset-bottom, 10px);
     }
-    * { margin:0; padding:0; box-sizing:border-box; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent; -webkit-user-modify: read-only; }
-    input, textarea { -webkit-user-modify: read-write !important; user-select: text !important; -webkit-user-select: text !important; }
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* 기본적으로 user-select는 none이지만, 버튼과 입력 요소는 별도 처리 */
+    body, .container, .main-content, .card, .msg, .bubble, .chat-header, .header, .status-bar, .contact-list, .contact-card, .contact-info, .contact-name, .contact-status, .typing-indicator, .action-bar, .lock-overlay {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    /* 버튼은 pointer-events를 명확히 허용하고, user-select을 허용 */
+    button, .btn, .btn-small, .icon-btn, .send-btn, .action-btn, .contact-delete-btn, .msg-delete-btn, .emoji-item, .picker-item, .timer-option {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      pointer-events: auto !important;
+      cursor: pointer;
+      -webkit-touch-callout: default;
+      -webkit-user-modify: read-only;
+    }
+    /* 입력 요소는 텍스트 선택 및 수정 가능 */
+    input, textarea {
+      -webkit-user-modify: read-write !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      pointer-events: auto !important;
+    }
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       background: var(--bg); color: var(--text);
@@ -38,63 +64,148 @@
     .main-content { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; }
     .main-content::-webkit-scrollbar { width:4px; } .main-content::-webkit-scrollbar-thumb { background:#253040; border-radius:2px; }
     .card { background:var(--card); backdrop-filter:blur(14px); border-radius:var(--radius); padding:18px; margin-bottom:12px; border:1px solid var(--border); }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); padding:14px 20px; border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:0.95rem; transition:0.2s; width:100%; backdrop-filter:blur(10px); }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      background:rgba(255,255,255,0.05); color:white;
+      border:1px solid var(--border); padding:14px 20px;
+      border-radius:var(--radius-sm); cursor:pointer; font-weight:600;
+      font-size:0.95rem; transition:0.2s; width:100%;
+      backdrop-filter:blur(10px);
+      user-select: none; -webkit-user-select: none; -moz-user-select: none;
+      pointer-events: auto !important;
+    }
     .btn:hover { background:rgba(255,255,255,0.12); }
     .btn:active { transform:scale(0.97); }
     .btn.primary { background:var(--accent); border:none; }
     .btn.danger { background:var(--danger); border:none; }
-    .btn-small { padding:8px 14px; font-size:0.8rem; width:auto; border-radius:12px; }
-    input, textarea { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 15px; font-size:16px; outline:none; user-select:text; -webkit-user-select:text; }
+    .btn-small {
+      padding:8px 14px; font-size:0.8rem; width:auto; border-radius:12px;
+      user-select: none; -webkit-user-select: none; pointer-events: auto !important;
+    }
+    input, textarea {
+      width:100%; background:#0a0f18; color:var(--text);
+      border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:14px 15px; font-size:16px; outline:none;
+    }
     input:focus, textarea:focus { border-color:var(--accent); box-shadow: 0 0 0 2px rgba(91,141,240,0.3); }
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; display:flex; align-items:center; justify-content:center; }
-    .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; width:90%; max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .modal {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      z-index:100; display:flex; align-items:center; justify-content:center;
+    }
+    .modal-content {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:24px; width:90%;
+      max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
     .modal-content h3 { margin-bottom: 16px; font-size: 1.1rem; }
     #chatScreen { display:none; flex-direction:column; flex:1; }
     #messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 0; }
     .msg { display:flex; flex-direction:column; animation:fadeUp 0.2s ease; position:relative; }
     .msg.system { align-items:center; } .msg.me { align-items:flex-end; } .msg.other { align-items:flex-start; }
-    .bubble { max-width:83%; padding:10px 16px; border-radius:20px; background:rgba(22,30,44,0.85); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.05); word-break:break-word; position:relative; overflow:hidden; z-index:1; }
+    .bubble {
+      max-width:83%; padding:10px 16px; border-radius:20px;
+      background:rgba(22,30,44,0.85); backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.05); word-break:break-word;
+      position:relative; overflow:hidden; z-index:1;
+    }
     .msg.system .bubble { background:rgba(255,255,255,0.04); border:none; font-size:0.78rem; color:var(--sub); }
     .msg.me .bubble { background:linear-gradient(140deg,rgba(74,130,250,0.5),rgba(124,92,240,0.5)); border-bottom-right-radius:6px; }
     .msg.other .bubble { border-bottom-left-radius:6px; }
     .msg .time { font-size:0.65rem; color:var(--sub); margin-top:4px; display:flex; justify-content:flex-end; gap:6px; position:relative; z-index:5; }
     .encrypted-placeholder { font-family:monospace; font-size:0.7rem; color:#5b6e8c; padding:4px; text-align:center; }
-    .msg-delete-btn { position:absolute; top:4px; right:4px; width:22px; height:22px; font-size:12px; color:white; background:rgba(0,0,0,0.5); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity 0.2s; z-index:10; }
+    .msg-delete-btn {
+      position:absolute; top:4px; right:4px; width:22px; height:22px;
+      font-size:12px; color:white; background:rgba(0,0,0,0.5);
+      border:none; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; cursor:pointer; opacity:0;
+      transition:opacity 0.2s; z-index:10;
+      pointer-events: auto !important;
+    }
     .msg:hover .msg-delete-btn, .msg:active .msg-delete-btn { opacity:1; }
     .timer-badge { font-size:0.55rem; color:var(--accent); background:rgba(91,141,240,0.15); border-radius:8px; padding:1px 6px; margin-left:4px; }
-    .lock-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+    .lock-overlay {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      background:var(--bg); z-index:200; display:flex;
+      flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    }
     .lock-overlay input { max-width:250px; }
     .input-bar { display:flex; gap:6px; padding:10px 0 0; align-items:flex-end; padding-bottom:var(--safe-bottom); }
     #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; }
-    .icon-btn { background:none; border:none; font-size:1.3rem; cursor:pointer; padding:10px; color:var(--accent); }
-    .send-btn { background:var(--accent); color:white; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; }
+    .icon-btn {
+      background:none; border:none; font-size:1.3rem;
+      cursor:pointer; padding:10px; color:var(--accent);
+      pointer-events: auto !important;
+    }
+    .send-btn {
+      background:var(--accent); color:white; width:44px; height:44px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:50%; cursor:pointer; flex-shrink:0;
+      pointer-events: auto !important;
+    }
     .action-bar { display:flex; gap:4px; padding:4px 0 0; position:relative; flex-wrap:wrap; }
-    .action-btn { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:8px 14px; border-radius:14px; cursor:pointer; font-size:0.85rem; }
-    .picker-overlay { display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; max-height:220px; overflow-y:auto; z-index:20; margin-bottom:4px; }
+    .action-btn {
+      background:rgba(255,255,255,0.05); border:1px solid var(--border);
+      color:var(--text); padding:8px 14px; border-radius:14px;
+      cursor:pointer; font-size:0.85rem;
+      pointer-events: auto !important;
+    }
+    .picker-overlay {
+      display:none; position:absolute; bottom:100%; left:0; right:0;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:16px; padding:12px; max-height:220px;
+      overflow-y:auto; z-index:20; margin-bottom:4px;
+    }
     .picker-overlay.active { display:flex; flex-direction:column; gap:8px; }
-    .picker-search { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:16px; outline:none; margin-bottom:4px; }
+    .picker-search {
+      width:100%; background:#0a0f18; color:var(--text);
+      border:1px solid var(--border); border-radius:12px;
+      padding:10px 12px; font-size:16px; outline:none; margin-bottom:4px;
+    }
     .picker-grid { display:flex; flex-wrap:wrap; gap:8px; }
-    .picker-item { cursor:pointer; border-radius:8px; overflow:hidden; }
+    .picker-item { cursor:pointer; border-radius:8px; overflow:hidden; pointer-events: auto !important; }
     .picker-item img { width:64px; height:64px; object-fit:cover; border-radius:8px; }
-    .emoji-item { font-size:1.8rem; cursor:pointer; padding:6px 8px; border-radius:8px; }
+    .emoji-item {
+      font-size:1.8rem; cursor:pointer; padding:6px 8px;
+      border-radius:8px; pointer-events: auto !important;
+    }
     .hidden { display:none !important; }
     .text-center { text-align:center; } .text-sub { color:var(--sub); font-size:0.82rem; }
     .mt { margin-top:12px; } .mb { margin-bottom:12px; }
-    .link-box { word-break:break-all; background:#0a0f18; padding:10px; border-radius:12px; font-size:0.72rem; margin:8px 0; max-height:75px; overflow-y:auto; color:#9aa4bf; }
+    .link-box {
+      word-break:break-all; background:#0a0f18; padding:10px;
+      border-radius:12px; font-size:0.72rem; margin:8px 0;
+      max-height:75px; overflow-y:auto; color:#9aa4bf;
+    }
     .chat-header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); }
     .chat-title { font-size:0.95rem; font-weight:600; flex:1; }
     .typing-indicator { font-size:0.75rem; color:var(--sub); padding:4px 16px; display:none; }
     .contact-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
-    .contact-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; position:relative; }
+    .contact-card {
+      background:rgba(255,255,255,0.03); border:1px solid var(--border);
+      border-radius:16px; padding:14px 16px; cursor:pointer;
+      display:flex; align-items:center; gap:12px; position:relative;
+      pointer-events: auto !important;
+    }
     .contact-card.active { border-color:var(--accent); background:rgba(91,141,240,0.1); }
-    .contact-avatar { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; position:relative; }
+    .contact-avatar {
+      width:44px; height:44px; border-radius:50%;
+      background:rgba(255,255,255,0.08); display:flex;
+      align-items:center; justify-content:center;
+      font-size:1.2rem; flex-shrink:0; position:relative;
+    }
     .contact-dot { position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid var(--surface); }
     .contact-dot.on { background:var(--success); } .contact-dot.off { background:var(--danger); }
     .contact-info { flex:1; min-width:0; }
     .contact-name { font-size:0.95rem; font-weight:600; }
     .contact-status { font-size:0.75rem; color:var(--sub); margin-top:2px; }
     .unread-badge { background:var(--danger); color:white; border-radius:12px; padding:2px 8px; font-size:0.7rem; font-weight:bold; margin-left:8px; }
-    .contact-delete-btn { position:absolute; right:16px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--danger); font-size:1.2rem; cursor:pointer; opacity:0.6; padding:8px; }
+    .contact-delete-btn {
+      position:absolute; right:16px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:var(--danger);
+      font-size:1.2rem; cursor:pointer; opacity:0.6; padding:8px;
+      pointer-events: auto !important;
+    }
     .contact-delete-btn:hover { opacity:1; }
     .svg-icon { width:20px; height:20px; fill:currentColor; flex-shrink:0; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
@@ -107,7 +218,7 @@
   <div id="lockOverlay" class="lock-overlay hidden">
     <h2>🔒 기기 잠금</h2>
     <input type="password" id="lockPasswordInput" placeholder="암호 입력">
-    <button class="btn primary" id="unlockBtn" style="width:auto;">잠금 해제</button>
+    <button type="button" class="btn primary" id="unlockBtn" style="width:auto;">잠금 해제</button>
   </div>
   <div class="header"><h1>🔐 P2P 비밀채팅</h1><div class="status-bar"><span id="connDot" class="dot off"></span><span id="connLabel">오프라인</span></div></div>
   <div class="main-content" id="mainArea">
@@ -115,14 +226,14 @@
       <div class="card text-center">
         <h3>서버 없이 완벽한 익명성</h3>
         <p class="text-sub mb">ECDSA 서명 · 지문 인증 · 자동 파괴 타이머</p>
-        <button class="btn primary" id="newChatBtn">✨ 새 채팅</button>
-        <button class="btn mt" id="joinChatBtn">🔗 초대 링크로 참가</button>
+        <button type="button" class="btn primary" id="newChatBtn">✨ 새 채팅</button>
+        <button type="button" class="btn mt" id="joinChatBtn">🔗 초대 링크로 참가</button>
       </div>
       <div style="font-size:0.8rem; color:var(--sub); margin:12px 0 8px; font-weight:600;">📋 대화 목록</div>
       <div class="contact-list" id="contactList"></div>
     </div>
     <div id="nameModal" class="modal hidden">
-      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="상대방 이름"><div class="mt" style="display:flex;gap:8px;"><button class="btn primary" id="confirmNewChatBtn">확인</button><button class="btn" id="cancelNewChatBtn">취소</button></div></div>
+      <div class="modal-content"><h3>✨ 새 채팅</h3><input type="text" id="peerNameInput" placeholder="상대방 이름"><div class="mt" style="display:flex;gap:8px;"><button type="button" class="btn primary" id="confirmNewChatBtn">확인</button><button type="button" class="btn" id="cancelNewChatBtn">취소</button></div></div>
     </div>
     <div id="offerPanel" class="view hidden">
       <div class="card text-center">
@@ -130,63 +241,64 @@
         <p><strong>연결 링크 생성 중...</strong></p>
         <p class="text-sub">생성된 링크를 상대에게 전송하세요.</p>
         <div class="link-box" id="offerLinkDisplay">생성 중...</div>
-        <button class="btn mt" id="copyOfferLinkBtn">링크 복사</button>
+        <button type="button" class="btn mt" id="copyOfferLinkBtn">링크 복사</button>
         <p class="text-sub mt">상대의 Answer 링크를 아래에 붙여넣으세요.</p>
-        <input type="text" id="answerLinkInput" placeholder="Answer 링크"><button class="btn primary mt" id="applyAnswerBtn">연결 완료</button>
-        <button class="btn mt" id="offerHomeBtn">홈으로</button>
+        <input type="text" id="answerLinkInput" placeholder="Answer 링크"><button type="button" class="btn primary mt" id="applyAnswerBtn">연결 완료</button>
+        <button type="button" class="btn mt" id="offerHomeBtn">홈으로</button>
       </div>
     </div>
     <div id="answerPanel" class="view hidden">
-      <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea><button class="btn primary mt" id="createAnswerBtn">연결 시작</button></div>
-      <button class="btn mt" id="answerHomeBtn">홈으로</button>
+      <div class="card"><strong>📥 초대 링크 붙여넣기</strong><textarea id="remoteOfferSDP" rows="3" placeholder="방장에게 받은 전체 링크..."></textarea><button type="button" class="btn primary mt" id="createAnswerBtn">연결 시작</button></div>
+      <button type="button" class="btn mt" id="answerHomeBtn">홈으로</button>
     </div>
     <div id="chatScreen" class="view hidden">
       <div class="chat-header">
-        <button class="btn-small" id="backToHomeBtn">←</button>
+        <button type="button" class="btn-small" id="backToHomeBtn">←</button>
         <span class="chat-title" id="chatTitle">채팅</span>
-        <button class="btn-small" id="renameChatBtn">✎</button>
-        <button class="btn-small danger" id="destroyChatBtn">🗑</button>
+        <button type="button" class="btn-small" id="renameChatBtn">✎</button>
+        <button type="button" class="btn-small danger" id="destroyChatBtn">🗑</button>
       </div>
       <div id="securityCard" class="card" style="margin:0 0 4px; padding:6px 12px; font-size:0.7rem; display:none;">🔒 <span id="securityStatus">보안 세션 활성</span></div>
       <div id="fingerprintVerification" class="card" style="margin:4px 0; padding:6px 12px; font-size:0.7rem; display:none; background:rgba(69,214,138,0.1); cursor:pointer;">🔍 <span id="fpText">지문 확인</span></div>
       <div id="passwordPrompt" class="card text-center" style="margin:8px;">
         <strong>🔐 채팅방 암호 입력</strong>
-        <input type="password" id="chatPasswordInput" placeholder="상대와 공유한 암호"><button class="btn primary mt" id="submitPasswordBtn">암호 설정</button>
+        <input type="password" id="chatPasswordInput" placeholder="상대와 공유한 암호">
+        <button type="button" class="btn primary mt" id="submitPasswordBtn">암호 설정</button>
         <p id="passwordError" class="text-sub" style="color:var(--danger); display:none;"></p>
       </div>
       <div id="messages"></div>
       <div id="typingIndicator" class="typing-indicator">상대방이 입력 중...</div>
       <div id="timerSelector" style="padding:4px 8px; display:none; gap:4px; align-items:center;">
         <span style="font-size:0.75rem;">⏳</span>
-        <button class="action-btn timer-option" data-minutes="1">1분</button>
-        <button class="action-btn timer-option" data-minutes="5">5분</button>
-        <button class="action-btn timer-option" data-minutes="60">1시간</button>
-        <button class="action-btn timer-option" data-minutes="1440">1일</button>
-        <button class="action-btn timer-option active" data-minutes="0">없음</button>
+        <button type="button" class="action-btn timer-option" data-minutes="1">1분</button>
+        <button type="button" class="action-btn timer-option" data-minutes="5">5분</button>
+        <button type="button" class="action-btn timer-option" data-minutes="60">1시간</button>
+        <button type="button" class="action-btn timer-option" data-minutes="1440">1일</button>
+        <button type="button" class="action-btn timer-option active" data-minutes="0">없음</button>
       </div>
       <div class="action-bar" style="position:relative; padding:0 8px;">
-        <button class="action-btn" id="emojiBtn">😀</button>
-        <button class="action-btn" id="mediaBtn">🔗</button>
-        <button class="action-btn" id="stickerBtn">📁</button>
-        <button class="action-btn" id="timerBtn">⏳</button>
+        <button type="button" class="action-btn" id="emojiBtn">😀</button>
+        <button type="button" class="action-btn" id="mediaBtn">🔗</button>
+        <button type="button" class="action-btn" id="stickerBtn">📁</button>
+        <button type="button" class="action-btn" id="timerBtn">⏳</button>
         <div class="picker-overlay" id="emojiPicker"><div class="picker-grid" id="emojiGrid"></div></div>
         <div class="picker-overlay" id="mediaPicker"><input type="text" class="picker-search" id="mediaSearch" placeholder="URL"><div class="picker-grid" id="mediaGrid"></div></div>
         <input type="file" id="stickerFileInput" class="hidden" accept="image/*">
       </div>
       <div class="input-bar" style="padding:8px;">
-        <button class="icon-btn" id="attachBtn">📎</button>
+        <button type="button" class="icon-btn" id="attachBtn">📎</button>
         <textarea id="msgInput" rows="1" placeholder="메시지 (종단간 암호화 + 서명)"></textarea>
-        <button class="send-btn" id="sendBtn">➤</button>
+        <button type="button" class="send-btn" id="sendBtn">➤</button>
       </div>
       <input type="file" id="fileInput" class="hidden" multiple>
     </div>
   </div>
 </div>
 <div id="answerModal" class="modal hidden">
-  <div class="modal-content"><h3>📤 Answer 링크</h3><p class="text-sub mb">이 링크를 상대에게 전송하세요.</p><div class="link-box" id="answerModalLink"></div><div style="display:flex; gap:8px; margin-top:12px;"><button class="btn primary" id="copyAnswerBtn">복사</button><button class="btn" id="closeAnswerModalBtn">닫기</button></div></div>
+  <div class="modal-content"><h3>📤 Answer 링크</h3><p class="text-sub mb">이 링크를 상대에게 전송하세요.</p><div class="link-box" id="answerModalLink"></div><div style="display:flex; gap:8px; margin-top:12px;"><button type="button" class="btn primary" id="copyAnswerBtn">복사</button><button type="button" class="btn" id="closeAnswerModalBtn">닫기</button></div></div>
 </div>
 <div id="destroyConfirmModal" class="modal hidden">
-  <div class="modal-content"><h3>⚠️ 채팅 삭제</h3><p>상대방도 삭제됩니다. 계속하시겠습니까?</p><div style="display:flex; gap:8px; margin-top:16px;"><button class="btn danger" id="confirmDestroyBtn">삭제</button><button class="btn" id="cancelDestroyBtn">취소</button></div></div>
+  <div class="modal-content"><h3>⚠️ 채팅 삭제</h3><p>상대방도 삭제됩니다. 계속하시겠습니까?</p><div style="display:flex; gap:8px; margin-top:16px;"><button type="button" class="btn danger" id="confirmDestroyBtn">삭제</button><button type="button" class="btn" id="cancelDestroyBtn">취소</button></div></div>
 </div>
 
 <script nonce="2726c7f26c">
@@ -226,7 +338,7 @@ function saveTimers(t){localStorage.setItem(TIMERS,JSON.stringify(t))}
 function addTimer(pid,mid,exp){const t=getTimers();if(!t[pid])t[pid]={};t[pid][mid]=exp;saveTimers(t)}
 function delTimer(pid,mid){const t=getTimers();if(t[pid]){delete t[pid][mid];saveTimers(t)}}
 function chkTimers(){const now=Date.now();const t=getTimers();let c=false;for(const p in t){for(const m in t[p]){if(now>=t[p][m]){handleExp(p,m);delete t[p][m];c=true}}if(!Object.keys(t[p]).length)delete t[p]}if(c)saveTimers(t)}
-function handleExp(pid,mid){removeUI(mid);const s=sessions[pid];if(s?.rootKey&&s.confirmed)sendDelete(pid,mid);if(s)s.pending=s.pending.filter(m=>m.msgId!==mid)}
+function handleExp(pid,mid){removeUI(mid);const s=sessions[pid];if(s?.root&&s.confirmed)sendDelete(pid,mid);if(s)s.pending=s.pending.filter(m=>m.msgId!==mid)}
 setInterval(chkTimers,1000);
 
 // 암호화 상수
@@ -242,11 +354,15 @@ function getCon(){try{return JSON.parse(localStorage.getItem('p2con')||'[]')}cat
 function saveCon(c){localStorage.setItem('p2con',JSON.stringify(c))}
 function addCon(id,nm){let c=getCon();if(!c.find(x=>x.id===id)){c.push({id,name:nm});saveCon(c)}renderCon()}
 function rmCon(id){saveCon(getCon().filter(x=>x.id!==id))}
+function renameChat(){
+  if(!activePeerId)return; const contacts=getCon(); const c=contacts.find(x=>x.id===activePeerId);
+  if(!c)return; const newName=prompt('새 이름:',c.name); if(newName){c.name=newName;saveCon(contacts);document.getElementById('chatTitle').textContent=newName;renderCon()}
+}
 function renderCon(){
   const ct=document.getElementById('contactList');if(!ct)return;
   ct.innerHTML=getCon().filter(c=>!isDest(c.id)).map(c=>{
     const s=sessions[c.id],on=s?.online,un=s?s.pending.length:0;
-    return `<div class="contact-card${c.id===activePeerId?' active':''}" data-pid="${c.id}"><div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot${on?' on':' off'}"></span></div><div class="contact-info"><div class="contact-name">${esc(c.name)}${un?` <span class="unread-badge">${un}</span>`:''}</div><div class="contact-status">${on?'온라인':'오프라인'}</div></div><button class="contact-delete-btn" data-del="${c.id}">✕</button></div>`
+    return `<div class="contact-card${c.id===activePeerId?' active':''}" data-pid="${c.id}"><div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot${on?' on':' off'}"></span></div><div class="contact-info"><div class="contact-name">${esc(c.name)}${un?` <span class="unread-badge">${un}</span>`:''}</div><div class="contact-status">${on?'온라인':'오프라인'}</div></div><button type="button" class="contact-delete-btn" data-del="${c.id}">✕</button></div>`
   }).join('');
   ct.querySelectorAll('.contact-card').forEach(card=>{card.addEventListener('click',e=>{if(e.target.closest('.contact-delete-btn'))return;selectPeer(card.dataset.pid)})});
   ct.querySelectorAll('.contact-delete-btn').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();showDestroy(b.dataset.del)})});
@@ -505,15 +621,15 @@ function makeBubble(s,cipher,who,mid,time,pid,timer){
   const b=document.createElement('div');b.className='bubble encrypted-msg';b.dataset.cipher=JSON.stringify(cipher);b.dataset.revealed='false';b.dataset.msgid=mid;
   let tb='';if(timer>0){const exp=Date.now()+timer*60*1000;addTimer(pid,mid,exp);const ds=timer>=1440?'1일':timer>=60?`${Math.floor(timer/60)}h`:`${timer}분`;tb=` <span class="timer-badge">⏳${ds}</span>`}
   b.innerHTML=`<span class="encrypted-placeholder">🔒 암호화${tb}</span><div class="time">${time}</div>`;
-  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});b.appendChild(del);
+  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.type='button';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});b.appendChild(del);
   let pt;
-  b.addEventListener('pointerdown',e=>{if(isLocked||!s.root)return;pt=setTimeout(async()=>{if(b.dataset.revealed==='true')return;try{const plain=await decDisp(s,JSON.parse(b.dataset.cipher));b.innerHTML=`${esc(plain)}${tb}<div class="time">${time}</div>`;b.dataset.revealed='true';const d2=document.createElement('button');d2.className='msg-delete-btn';d2.textContent='✕';d2.addEventListener('click',ev=>{ev.stopPropagation();delMsg(mid)});b.appendChild(d2);setTimeout(()=>{if(b&&b.dataset.revealed==='true'){b.innerHTML=`<span class="encrypted-placeholder">🔒 암호화${tb}</span><div class="time">${time}</div>`;b.dataset.revealed='false';const d3=document.createElement('button');d3.className='msg-delete-btn';d3.textContent='✕';d3.addEventListener('click',e3=>{e3.stopPropagation();delMsg(mid)});b.appendChild(d3)}},3000)}catch{}},600)});
+  b.addEventListener('pointerdown',e=>{if(isLocked||!s.root)return;pt=setTimeout(async()=>{if(b.dataset.revealed==='true')return;try{const plain=await decDisp(s,JSON.parse(b.dataset.cipher));b.innerHTML=`${esc(plain)}${tb}<div class="time">${time}</div>`;b.dataset.revealed='true';const d2=document.createElement('button');d2.className='msg-delete-btn';d2.textContent='✕';d2.type='button';d2.addEventListener('click',ev=>{ev.stopPropagation();delMsg(mid)});b.appendChild(d2);setTimeout(()=>{if(b&&b.dataset.revealed==='true'){b.innerHTML=`<span class="encrypted-placeholder">🔒 암호화${tb}</span><div class="time">${time}</div>`;b.dataset.revealed='false';const d3=document.createElement('button');d3.className='msg-delete-btn';d3.textContent='✕';d3.type='button';d3.addEventListener('click',e3=>{e3.stopPropagation();delMsg(mid)});b.appendChild(d3)}},3000)}catch{}},600)});
   b.addEventListener('pointerup',()=>clearTimeout(pt));b.addEventListener('pointercancel',()=>clearTimeout(pt));b.addEventListener('pointerleave',()=>clearTimeout(pt));
   return b;
 }
 function makeFileMsg(mid,who,fn,fs,pid,timer){
   const c=document.getElementById('messages'),d=document.createElement('div');d.className='msg '+(who==='me'?'me':who==='other'?'other':'system');d.id='file-msg-'+mid;
-  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});
+  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.type='button';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});
   const sz=fs?fmtBytes(fs):'';d.innerHTML=`<div class="bubble"><div class="file-info">📎 ${esc(fn)}${sz?` (${sz})`:''}</div><div class="file-progress"><div class="file-progress-bar" id="file-bar-${mid}" style="width:0%"></div></div><div class="time">${new Date().toLocaleTimeString()}</div></div>`;
   d.querySelector('.bubble').appendChild(del);c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
 }
@@ -529,7 +645,7 @@ async function addEncDisp(pid,plain,who,mid,timer=0){
 }
 function addMsgPlain(pid,text,who,mid){
   const c=document.getElementById('messages'),d=document.createElement('div');d.className='msg '+(who==='me'?'me':who==='other'?'other':'system');if(mid)d.id='msg-'+mid;
-  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});
+  const del=document.createElement('button');del.className='msg-delete-btn';del.textContent='✕';del.type='button';del.addEventListener('click',e=>{e.stopPropagation();delMsg(mid)});
   d.innerHTML=`<div class="bubble">${esc(text)}<div class="time">${new Date().toLocaleTimeString()}</div></div>`;d.querySelector('.bubble').appendChild(del);c.appendChild(d);c.scrollTop=c.scrollHeight;
 }
 function addMsg(pid,text,who,mid){if(pid!==activePeerId||isDest(pid)||isLocked)return;addMsgPlain(pid,text,who,mid)}
