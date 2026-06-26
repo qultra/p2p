@@ -7,40 +7,14 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-2726c7f26c'; connect-src *; media-src 'self'; img-src 'self' data: blob:; style-src 'self' 'nonce-2726c7f26c'; base-uri 'none'; form-action 'none'; referrer no-referrer;">
   <meta name="referrer" content="no-referrer">
   <style nonce="2726c7f26c">
+    /* 변수 및 초기화 */
     :root {
       --bg: #06090f; --surface: #0f141e; --card: rgba(15,20,30,0.9);
       --text: #e0e5f0; --sub: #8892b0; --accent: #5b8df0; --danger: #f97070;
       --success: #45d68a; --border: #1a2332; --radius: 20px; --radius-sm: 14px;
       --safe-bottom: env(safe-area-inset-bottom, 10px);
     }
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    /* 기본적으로 user-select는 none이지만, 버튼과 입력 요소는 별도 처리 */
-    body, .container, .main-content, .card, .msg, .bubble, .chat-header, .header, .status-bar, .contact-list, .contact-card, .contact-info, .contact-name, .contact-status, .typing-indicator, .action-bar, .lock-overlay {
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -webkit-touch-callout: none;
-    }
-    /* 버튼은 pointer-events를 명확히 허용하고, user-select을 허용 */
-    button, .btn, .btn-small, .icon-btn, .send-btn, .action-btn, .contact-delete-btn, .msg-delete-btn, .emoji-item, .picker-item, .timer-option {
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      pointer-events: auto !important;
-      cursor: pointer;
-      -webkit-touch-callout: default;
-      -webkit-user-modify: read-only;
-    }
-    /* 입력 요소는 텍스트 선택 및 수정 가능 */
-    input, textarea {
-      -webkit-user-modify: read-write !important;
-      user-select: text !important;
-      -webkit-user-select: text !important;
-      pointer-events: auto !important;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       background: var(--bg); color: var(--text);
@@ -71,33 +45,22 @@
       border-radius:var(--radius-sm); cursor:pointer; font-weight:600;
       font-size:0.95rem; transition:0.2s; width:100%;
       backdrop-filter:blur(10px);
-      user-select: none; -webkit-user-select: none; -moz-user-select: none;
-      pointer-events: auto !important;
+      user-select: none; -webkit-user-select: none;
     }
     .btn:hover { background:rgba(255,255,255,0.12); }
     .btn:active { transform:scale(0.97); }
     .btn.primary { background:var(--accent); border:none; }
     .btn.danger { background:var(--danger); border:none; }
-    .btn-small {
-      padding:8px 14px; font-size:0.8rem; width:auto; border-radius:12px;
-      user-select: none; -webkit-user-select: none; pointer-events: auto !important;
-    }
+    .btn-small { padding:8px 14px; font-size:0.8rem; width:auto; border-radius:12px; }
     input, textarea {
       width:100%; background:#0a0f18; color:var(--text);
       border:1px solid var(--border); border-radius:var(--radius-sm);
       padding:14px 15px; font-size:16px; outline:none;
+      user-select:text; -webkit-user-select:text;
     }
     input:focus, textarea:focus { border-color:var(--accent); box-shadow: 0 0 0 2px rgba(91,141,240,0.3); }
-    .modal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-      z-index:100; display:flex; align-items:center; justify-content:center;
-    }
-    .modal-content {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius); padding:24px; width:90%;
-      max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; display:flex; align-items:center; justify-content:center; }
+    .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; width:90%; max-width:360px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
     .modal-content h3 { margin-bottom: 16px; font-size: 1.1rem; }
     #chatScreen { display:none; flex-direction:column; flex:1; }
     #messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 0; }
@@ -120,7 +83,6 @@
       border:none; border-radius:50%; display:flex; align-items:center;
       justify-content:center; cursor:pointer; opacity:0;
       transition:opacity 0.2s; z-index:10;
-      pointer-events: auto !important;
     }
     .msg:hover .msg-delete-btn, .msg:active .msg-delete-btn { opacity:1; }
     .timer-badge { font-size:0.55rem; color:var(--accent); background:rgba(91,141,240,0.15); border-radius:8px; padding:1px 6px; margin-left:4px; }
@@ -132,23 +94,17 @@
     .lock-overlay input { max-width:250px; }
     .input-bar { display:flex; gap:6px; padding:10px 0 0; align-items:flex-end; padding-bottom:var(--safe-bottom); }
     #msgInput { flex:1; min-height:44px; max-height:110px; resize:none; }
-    .icon-btn {
-      background:none; border:none; font-size:1.3rem;
-      cursor:pointer; padding:10px; color:var(--accent);
-      pointer-events: auto !important;
-    }
+    .icon-btn { background:none; border:none; font-size:1.3rem; cursor:pointer; padding:10px; color:var(--accent); }
     .send-btn {
       background:var(--accent); color:white; width:44px; height:44px;
       display:flex; align-items:center; justify-content:center;
       border-radius:50%; cursor:pointer; flex-shrink:0;
-      pointer-events: auto !important;
     }
     .action-bar { display:flex; gap:4px; padding:4px 0 0; position:relative; flex-wrap:wrap; }
     .action-btn {
       background:rgba(255,255,255,0.05); border:1px solid var(--border);
       color:var(--text); padding:8px 14px; border-radius:14px;
       cursor:pointer; font-size:0.85rem;
-      pointer-events: auto !important;
     }
     .picker-overlay {
       display:none; position:absolute; bottom:100%; left:0; right:0;
@@ -157,26 +113,15 @@
       overflow-y:auto; z-index:20; margin-bottom:4px;
     }
     .picker-overlay.active { display:flex; flex-direction:column; gap:8px; }
-    .picker-search {
-      width:100%; background:#0a0f18; color:var(--text);
-      border:1px solid var(--border); border-radius:12px;
-      padding:10px 12px; font-size:16px; outline:none; margin-bottom:4px;
-    }
+    .picker-search { width:100%; background:#0a0f18; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:16px; outline:none; margin-bottom:4px; }
     .picker-grid { display:flex; flex-wrap:wrap; gap:8px; }
-    .picker-item { cursor:pointer; border-radius:8px; overflow:hidden; pointer-events: auto !important; }
+    .picker-item { cursor:pointer; border-radius:8px; overflow:hidden; }
     .picker-item img { width:64px; height:64px; object-fit:cover; border-radius:8px; }
-    .emoji-item {
-      font-size:1.8rem; cursor:pointer; padding:6px 8px;
-      border-radius:8px; pointer-events: auto !important;
-    }
+    .emoji-item { font-size:1.8rem; cursor:pointer; padding:6px 8px; border-radius:8px; }
     .hidden { display:none !important; }
     .text-center { text-align:center; } .text-sub { color:var(--sub); font-size:0.82rem; }
     .mt { margin-top:12px; } .mb { margin-bottom:12px; }
-    .link-box {
-      word-break:break-all; background:#0a0f18; padding:10px;
-      border-radius:12px; font-size:0.72rem; margin:8px 0;
-      max-height:75px; overflow-y:auto; color:#9aa4bf;
-    }
+    .link-box { word-break:break-all; background:#0a0f18; padding:10px; border-radius:12px; font-size:0.72rem; margin:8px 0; max-height:75px; overflow-y:auto; color:#9aa4bf; }
     .chat-header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); }
     .chat-title { font-size:0.95rem; font-weight:600; flex:1; }
     .typing-indicator { font-size:0.75rem; color:var(--sub); padding:4px 16px; display:none; }
@@ -185,7 +130,6 @@
       background:rgba(255,255,255,0.03); border:1px solid var(--border);
       border-radius:16px; padding:14px 16px; cursor:pointer;
       display:flex; align-items:center; gap:12px; position:relative;
-      pointer-events: auto !important;
     }
     .contact-card.active { border-color:var(--accent); background:rgba(91,141,240,0.1); }
     .contact-avatar {
@@ -204,7 +148,6 @@
       position:absolute; right:16px; top:50%; transform:translateY(-50%);
       background:none; border:none; color:var(--danger);
       font-size:1.2rem; cursor:pointer; opacity:0.6; padding:8px;
-      pointer-events: auto !important;
     }
     .contact-delete-btn:hover { opacity:1; }
     .svg-icon { width:20px; height:20px; fill:currentColor; flex-shrink:0; }
@@ -304,7 +247,8 @@
 <script nonce="2726c7f26c">
 (() => {
 'use strict';
-// ────────────────────── 유틸리티 ──────────────────────
+
+// ─────────────── 유틸리티 ───────────────
 const te = new TextEncoder(), td = new TextDecoder();
 const b64url = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 const fromB64url = s => { s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer; };
@@ -398,7 +342,7 @@ let selTimer=0;
 document.addEventListener('click',e=>{if(e.target.classList.contains('timer-option')){document.querySelectorAll('.timer-option').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');selTimer=parseInt(e.target.dataset.minutes)}});
 document.getElementById('timerBtn').addEventListener('click',()=>{const s=document.getElementById('timerSelector');s.style.display=s.style.display==='none'?'flex':'none'});
 
-// 지문
+// 지문 확인
 function updateFp(s){
   const d=document.getElementById('fingerprintVerification');
   if(!s?.pSK){d.style.display='none';return}
@@ -412,7 +356,7 @@ document.getElementById('fingerprintVerification').addEventListener('click',asyn
   if(ok){s.vFp=true;updateFp(s);alert('신원 확인 완료')}
 });
 
-// 모달 및 연결
+// ─────────────── 연결 및 시그널링 ───────────────
 function showName(){document.getElementById('nameModal').classList.remove('hidden');document.getElementById('peerNameInput').focus()}
 function closeName(){document.getElementById('nameModal').classList.add('hidden')}
 async function newChat(){
@@ -496,7 +440,7 @@ function setupTyDC(pid){
   }
 }
 
-// 삭제 전파
+// ─────────────── 삭제 전파 ───────────────
 function sendRaw(pid){const s=sessions[pid];if(!s)return false;let ok=false;const m=JSON.stringify({type:'__destroy_req__',peerId:pid,ts:Date.now()});[s.dc,s.tyDC].filter(c=>c&&c.readyState==='open').forEach(c=>{try{c.send(m);ok=true}catch{}});return ok}
 async function trySendDestroy(pid){
   const s=sessions[pid];if(!s){markDest(pid);rmCon(pid);goHome();return}
@@ -511,7 +455,7 @@ async function trySendDestroy(pid){
   const d=Math.min(300*Math.pow(2,s.dRetry),30000);s.dRetry++;setTimeout(()=>trySendDestroy(pid),d)
 }
 
-// 더블 래칫 + ECDSA
+// ─────────────── 더블 래칫 + ECDSA ───────────────
 async function genSign(){return await crypto.subtle.generateKey(ECDSA,true,['sign','verify'])}
 async function signData(pr,data){const sig=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-512'},pr,s2b(data));return b2b64(sig)}
 async function verifySig(pu,data,sig64){const sig=b64toBuf(sig64);return await crypto.subtle.verify({name:'ECDSA',hash:'SHA-512'},pu,sig,s2b(data))}
@@ -602,7 +546,7 @@ async function decAndVerify(s,d){
   return obj;
 }
 
-// 디스플레이 암호화
+// ─────────────── 디스플레이 암호화 ───────────────
 async function getDisp(s,plain){
   const dk=await crypto.subtle.generateKey({name:'AES-GCM',length:128},true,['encrypt']);const iv=crypto.getRandomValues(new Uint8Array(12));
   const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},dk,s2b(plain));const raw=await crypto.subtle.exportKey('raw',dk);
@@ -651,7 +595,7 @@ function addMsgPlain(pid,text,who,mid){
 function addMsg(pid,text,who,mid){if(pid!==activePeerId||isDest(pid)||isLocked)return;addMsgPlain(pid,text,who,mid)}
 async function dispMsg(pid,text,who,mid){await addEncDisp(pid,text,who,mid)}
 
-// 메시지 삭제
+// ─────────────── 메시지 삭제 ───────────────
 async function sendDelete(pid,mid){
   const s=sessions[pid];if(!s||!s.root||!s.conf)return;removeUI(mid);if(s.pending)s.pending=s.pending.filter(m=>m.msgId!==mid);
   const pl={type:'delete',id:mid};if(s.dc&&s.dc.readyState==='open'){try{const enc=await encAndSign(s,pl);s.dc.send(JSON.stringify({type:'msg',...enc}))}catch{}}
@@ -661,7 +605,7 @@ function delMsg(mid){const s=activePeerId?sessions[activePeerId]:null;if(s)sendD
 function removeUI(mid){const m=document.getElementById('msg-'+mid);if(m)m.remove();const f=document.getElementById('file-msg-'+mid);if(f)f.remove()}
 function handleDel(pid,mid){const s=sessions[pid];if(!s)return;removeUI(mid);s.pending=s.pending.filter(m=>m.msgId!==mid);s.recIds.delete(mid)}
 
-// 메시지 전송
+// ─────────────── 메시지 송수신 ───────────────
 async function sendText(){
   if(isLocked){alert('기기 잠금');return}if(!activePeerId||isDest(activePeerId))return;const s=sessions[activePeerId];if(!s)return;
   if(!s.root||!s.conf){alert('보안 세션 필요');return}const inp=document.getElementById('msgInput');const txt=inp.value.trim();if(!txt)return;
@@ -699,7 +643,7 @@ async function recvEnc(pid,plain,who,mid,tmr=0){const s=sessions[pid];if(!s)retu
 async function flushQ(pid){const s=sessions[pid];if(!s?.dc||s.dc.readyState!=='open'||!s.root||!s.conf)return;const q=loadQ(pid);if(!q.length)return;clearQ(pid);addMsg(pid,`📬 ${q.length}개 전송 중`,'system');for(const enc of q){try{s.dc.send(JSON.stringify({type:'msg',...enc}))}catch{const r=loadQ(pid);r.push(enc);saveQ(pid,r);break}}if(!loadQ(pid).length)addMsg(pid,'전송 완료','system')}
 function addEncMsg(pid,raw){if(pid!==activePeerId||isDest(pid)||isLocked)return;const c=document.getElementById('messages'),d=document.createElement('div');d.className='msg system';d.innerHTML=`<div class="bubble"><strong>🔒 암호문</strong><br><span style="font-size:0.65rem;">${esc(JSON.stringify(raw))}</span></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight}
 
-// 파일 전송
+// ─────────────── 파일 전송 ───────────────
 async function handleFiles(files){for(const f of files)await sendFile(f)}
 async function sendFile(file){
   const s=sessions[activePeerId];if(!s||!s.root||!s.conf||!s.dc||s.dc.readyState!=='open'){addMsg(activePeerId,'파일 전송 불가','system');return}
@@ -721,13 +665,13 @@ async function assembleFile(pid){
   else{const idx=s.pending.findIndex(m=>m.msgId===fr.id);if(idx>-1)s.pending[idx].content=`<a href="${url}" download="${esc(fr.name)}">📎 ${esc(fr.name)} 다운로드</a>`;notify(`${fr.name} 다운로드 준비`);renderCon()}s.fileRcv=null;
 }
 
-// 타이핑
+// ─────────────── 타이핑 ───────────────
 async function encTyp(s,st){if(!s.tyKey)return null;const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},s.tyKey,s2b(st));return{iv:Array.from(iv),ct:Array.from(new Uint8Array(ct))}}
 async function decTyp(s,d){const iv=new Uint8Array(d.iv),ct=new Uint8Array(d.ct);const p=await crypto.subtle.decrypt({name:'AES-GCM',iv},s.tyKey,ct);return td.decode(p)}
 function sendTyp(st){const s=sessions[activePeerId];if(s?.tyDC&&s.tyDC.readyState==='open'&&s.tyKey){encTyp(s,st?'1':'0').then(e=>e&&s.tyDC.send(JSON.stringify(e))).catch(()=>{})}}
 document.getElementById('msgInput').addEventListener('input',()=>{sendTyp(true);const s=sessions[activePeerId];if(s){clearTimeout(s.tyTimer);s.tyTimer=setTimeout(()=>sendTyp(false),1500)}});
 
-// 이모지/미디어
+// ─────────────── 이모지 / 미디어 ───────────────
 const EMO=['😀','😂','🥰','😎','🤔','👍','❤️','🔥','🎉','💯','😢','😡','🥺','🤯','✨','🍕','🚀','💻','📱','🎵'];
 function buildEmoji(){document.getElementById('emojiGrid').innerHTML=EMO.map(e=>`<span class="emoji-item">${e}</span>`).join('')}
 function togglePick(t){const p=document.getElementById(t+'Picker');const a=p.classList.contains('active');closeAllPicks();if(!a)p.classList.add('active')}
@@ -740,7 +684,7 @@ function filterMedia(){const q=document.getElementById('mediaSearch')?.value?.to
 function sendRead(pid,mid){const s=sessions[pid];if(!s?.root||!s.conf||!s.dc||s.dc.readyState!=='open')return;try{encAndSign(s,{type:'read',id:mid}).then(e=>s.dc.send(JSON.stringify({type:'msg',...e}))).catch(()=>{})}catch{}}
 function markRead(pid,mid){const el=document.getElementById('msg-'+mid);if(el){const t=el.querySelector('.time');if(t&&!t.querySelector('.read-status'))t.innerHTML+=' <span class="read-status" style="color:var(--success);">✓✓</span>'}}
 
-// 기기 잠금
+// ─────────────── 기기 잠금 ───────────────
 let lockPw=null,inaTimer=null,isLocked=false;
 function resetInact(){if(isLocked)return;clearTimeout(inaTimer);inaTimer=setTimeout(lockDev,30000)}
 function lockDev(){if(isLocked)return;const s=activePeerId?sessions[activePeerId]:null;if(!s?.pw)return;isLocked=true;lockPw=s.pw;document.getElementById('lockOverlay').classList.remove('hidden');clearRevealed();lockBubbles()}
@@ -755,18 +699,18 @@ let cbTimer=null;function schedClr(){clearTimeout(cbTimer);cbTimer=setTimeout(()
 // 스크린샷 탐지
 let lastVis=Date.now();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){lastVis=Date.now();if(activePeerId&&sessions[activePeerId]?.root)lockBubbles()}else if(document.visibilityState==='visible'){if(Date.now()-lastVis<200)console.warn('⚠️ 의심 화면 전환')}});
 
-// 삭제 로직
+// ─────────────── 삭제 로직 ───────────────
 async function destroyChat(pid){const s=sessions[pid];if(!s){markDest(pid);rmCon(pid);goHome();return}setPend(pid);s.dRetry=0;if(activePeerId===pid)goHome();await trySendDestroy(pid);rmCon(pid)}
 async function destroyActive(){if(activePeerId)await destroyChat(activePeerId)}
 
 // devtools 탐지
 (function(){let open=false;setInterval(()=>{const s=performance.now();debugger;if(performance.now()-s>160&&!open){open=true;for(const[,ss]of Object.entries(sessions)){ss.root=null;ss.sCK=null;ss.rCK=null;ss.tyKey=null}lockDev();alert('개발자 도구 감지')}},1000)})();
 
-// URL 해시
+// ─────────────── URL 해시 ───────────────
 async function chkHash(){const h=location.hash.substring(1);if(!h)return;const p=new URLSearchParams(h);if(p.has('offer')&&p.has('peer')){const pid=p.get('peer');if(isDest(pid)||hasPend(pid)){alert('삭제된 대화');return}const offer=decSDP(p.get('offer'));if(!getCon().find(c=>c.id===pid))addCon(pid,'상대방');activePeerId=pid;const s=getSess(pid);s.isOff=false;initPC(pid);await s.pc.setRemoteDescription(offer);const ans=await s.pc.createAnswer();await s.pc.setLocalDescription(ans);await waitIce(s.pc);const ansB64=encSDP(s.pc.localDescription);showView('chatScreen');document.getElementById('chatTitle').textContent='상대방';document.getElementById('passwordPrompt').style.display='block';document.getElementById('answerModalLink').textContent=location.origin+location.pathname+'#answer='+ansB64+'&peer='+pid;document.getElementById('answerModal').classList.remove('hidden');renderCon()}else if(p.has('answer')&&p.has('peer')){const pid=p.get('peer');if(isDest(pid)||hasPend(pid))return;const ans=decSDP(p.get('answer'));if(!getCon().find(c=>c.id===pid))addCon(pid,'상대방');let s=sessions[pid];if(!s||!s.pc){s=getSess(pid);s.isOff=true;initPC(pid);s.dc=s.pc.createDataChannel('chat',{ordered:true});setupDC(pid)}if(s.pc){await s.pc.setRemoteDescription(ans);activePeerId=pid;showView('chatScreen');document.getElementById('chatTitle').textContent=getCon().find(c=>c.id===pid)?.name||'채팅';document.getElementById('passwordPrompt').style.display='block'}renderCon()}}
 window.addEventListener('hashchange',chkHash);
 
-// 이벤트 바인딩
+// ─────────────── 이벤트 바인딩 ───────────────
 function bind(){
   document.getElementById('newChatBtn').addEventListener('click',showName);
   document.getElementById('joinChatBtn').addEventListener('click',showJoin);
@@ -801,7 +745,7 @@ function bind(){
 function copyById(id){const el=document.getElementById(id);const t=el.tagName==='INPUT'||el.tagName==='TEXTAREA'?el.value:el.textContent;navigator.clipboard.writeText(t).catch(()=>{});schedClr()}
 function notify(c){if(document.visibilityState==='hidden'&&Notification.permission==='granted')new Notification('P2P 비밀채팅',{body:c})}
 
-// 초기화
+// ─────────────── 초기화 ───────────────
 buildEmoji();renderCon();chkHash();showView('simpleMode');bind();resetInact();
 })();
 </script>
