@@ -2,48 +2,98 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🔏 초간편 비밀 DM 도구 (데이터 URL 북마크)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🔒 초간편 비밀 DM 북마크릿</title>
   <style>
-    body { font-family: system-ui; background: #0a0e14; color: #cdd6e0; padding: 20px; text-align: center; }
-    .box { max-width: 500px; margin: 0 auto; }
-    button { padding: 14px; background: #5190f0; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin: 6px 0; }
-    textarea, input { width: 100%; padding: 12px; margin: 6px 0; background: #141b22; color: white; border: 1px solid #1e293b; border-radius: 10px; font-size: 16px; }
-    .code { background: #0f172a; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 0.6rem; word-break: break-all; max-height: 100px; overflow-y: auto; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: system-ui, sans-serif; background: #0a0e14; color: #cdd6e0; padding: 20px; }
+    .box { max-width: 500px; margin: 0 auto; background: #141b22; border-radius: 20px; padding: 24px; border: 1px solid #1e293b; }
+    h1 { font-size: 1.3rem; text-align: center; margin-bottom: 12px; }
+    .code { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; font-family: monospace; font-size: 0.65rem; word-break: break-all; line-height: 1.4; height: 100px; overflow-y: auto; }
+    button { width: 100%; padding: 14px; background: #5190f0; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; cursor: pointer; }
+    button.copy { background: #2e3b4e; }
+    ul { margin: 12px 0; padding-left: 20px; color: #8895a5; font-size: 0.85rem; }
+    li { margin: 6px 0; }
+    .note { background: #1e293b; padding: 10px; border-radius: 10px; font-size: 0.8rem; margin-top: 16px; color: #8895a5; }
   </style>
 </head>
 <body>
   <div class="box">
-    <h1>📌 데이터 URL 북마크 만들기</h1>
-    <p>아래 버튼을 누르면 한 번에 복사됩니다.<br>이 주소를 <strong>새 북마크의 URL</strong>에 붙여넣으세요.</p>
-    <button id="generateBtn">🔗 데이터 URL 복사</button>
-    <textarea id="dataUrlDisplay" class="code" readonly style="height:80px;"></textarea>
-    <p style="font-size:0.8rem;color:#8895a5;">북마크를 눌렀을 때 열리는 비밀 도구입니다.</p>
+    <h1>🔏 인스타 DM 비밀 채팅</h1>
+    <p style="text-align:center; font-size:0.9rem; margin-bottom:16px;">북마크 한 방이면 끝!</p>
+    <div class="code" id="codeArea"></div>
+    <button id="copyBtn" class="copy">📋 코드 복사</button>
+
+    <div class="note" style="margin-top:20px;">
+      <strong>📱 iOS Safari에서 사용하기</strong>
+      <ul>
+        <li>코드를 복사한 뒤, Safari 주소창에 <code>javascript:</code>를 먼저 입력하고 붙여넣기</li>
+        <li>또는 <strong>공유 → 책갈피 추가 → 저장한 책갈피를 편집</strong>하여 URL을 위 코드로 변경</li>
+        <li>혹은 <strong>단축어 앱</strong>에서 <em>Safari에서 JavaScript 실행</em> 동작에 붙여넣기</li>
+      </ul>
+    </div>
   </div>
 
 <script>
-document.getElementById('generateBtn').addEventListener('click', () => {
-  // 미니 암호화 도구 HTML + JS (데이터 URL)
-  const toolHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>🔐 비밀 DM</title><style>body{font-family:system-ui;background:#0a0e14;color:white;padding:16px;text-align:center;}input,textarea{width:100%;padding:12px;margin:4px 0;background:#141b22;color:white;border:1px solid #1e293b;border-radius:10px;}button{background:#5190f0;border:none;color:white;padding:12px;border-radius:10px;width:100%;margin:4px 0;}</style></head><body>
-  <h3>🔏 비밀 DM 도구</h3>
-  <input type="password" id="pw" placeholder="비밀번호">
-  <textarea id="txt" rows="3" placeholder="평문 또는 암호문(🔒:...)"></textarea>
-  <button id="enc">🔒 암호화 & 복사</button>
-  <button id="dec">🔓 복호화</button>
-  <div id="out" style="margin-top:8px;word-break:break-all;background:#0f172a;padding:10px;border-radius:10px;"></div>
-  <script>
-    const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');
-    const db64=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer;};
-    async function k(pw,s){let m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
-    async function e(pw,pt){let s=crypto.getRandomValues(new Uint8Array(16)),key=await k(pw,s),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(pt)),c=new Uint8Array(16+12+ct.byteLength);c.set(s,0);c.set(iv,16);c.set(new Uint8Array(ct),28);return '🔒:'+b64(c.buffer);}
-    async function d(pw,full){let b=new Uint8Array(db64(full.slice(2))),s=b.slice(0,16),iv=b.slice(16,28),ct=b.slice(28),key=await k(pw,s),pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return new TextDecoder().decode(pt);}
-    document.getElementById('enc').onclick=async()=>{let p=document.getElementById('pw').value,t=document.getElementById('txt').value;if(!p||!t)return;try{let c=await e(p,t);document.getElementById('out').textContent=c;await navigator.clipboard.writeText(c);alert('암호문 복사됨');}catch(ex){alert('오류: '+ex);}};
-    document.getElementById('dec').onclick=async()=>{let p=document.getElementById('pw').value,t=document.getElementById('txt').value;if(!p||!t||!t.startsWith('🔒:'))return;try{let pt=await d(p,t);document.getElementById('out').textContent=pt;}catch(ex){alert('복호화 실패');}};
-  <\/script></body></html>`;
+document.addEventListener('DOMContentLoaded', () => {
+  // 가장 간결한 북마크릿 코드 (비밀번호 프롬프트 → 버튼 추가 → 자동 복호화)
+  const bookmarklet = `javascript:(function(){
+    var p=sessionStorage.getItem('_pw')||prompt('비밀번호 입력:','');
+    if(!p)return;
+    sessionStorage.setItem('_pw',p);
 
-  const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(toolHTML);
-  document.getElementById('dataUrlDisplay').value = dataUrl;
-  navigator.clipboard.writeText(dataUrl).then(() => alert('✅ 데이터 URL이 복사되었습니다.\n이제 새 북마크의 URL에 붙여넣으세요.'));
+    var enc=async(t)=>{var s=crypto.getRandomValues(new Uint8Array(16)),
+    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
+    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt']),
+    iv=crypto.getRandomValues(new Uint8Array(12)),
+    ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},dk,new TextEncoder().encode(t)),
+    c=new Uint8Array(16+12+ct.byteLength);c.set(s,0);c.set(iv,16);c.set(new Uint8Array(ct),28);
+    return'🔒:'+btoa(String.fromCharCode(...c)).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');};
+
+    var dec=async(f)=>{var b=Uint8Array.from(atob(f.slice(2).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)),
+    s=b.slice(0,16),iv=b.slice(16,28),ct=b.slice(28),
+    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
+    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']),
+    pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},dk,ct);
+    return new TextDecoder().decode(pt);};
+
+    var t=setInterval(function(){
+      var inp=document.querySelector('[contenteditable="true"][role="textbox"]');
+      var snd=document.querySelector('[data-testid="send-button"], [aria-label="Send"]');
+      if(inp&&snd&&!document.getElementById('__eBtn')){
+        clearInterval(t);
+        var btn=document.createElement('button');btn.id='__eBtn';btn.textContent='🔒 전송';
+        btn.style='margin-left:6px;padding:8px 12px;background:#5190f0;color:#fff;border:none;border-radius:16px;font-weight:bold;cursor:pointer;';
+        snd.parentNode.insertBefore(btn,snd.nextSibling);
+        btn.onclick=async function(e){e.preventDefault();e.stopPropagation();
+          var txt=inp.textContent.trim();if(txt){inp.textContent=await enc(txt);
+          inp.dispatchEvent(new Event('input',{bubbles:true}));setTimeout(function(){snd.click();},80);}};
+      }
+    },500);
+    setTimeout(function(){clearInterval(t);},10000);
+
+    var mo=new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType===1){
+            var msgs=n.querySelectorAll?n.querySelectorAll('div[dir="auto"]'):[];
+            if(n.matches&&n.matches('div[dir="auto"]')) msgs=[n];
+            msgs.forEach(async function(el){
+              if(el.dataset._done)return;var txt=el.textContent.trim();
+              if(txt.startsWith('🔒:')){try{el.textContent=await dec(txt);el.style.color='#4fd68a';el.dataset._done=1;}catch(e){}}
+            });
+          }
+        });
+      });
+    });
+    mo.observe(document.body,{childList:true,subtree:true});
+  })();`.replace(/\s+/g, ''); // 모든 공백 제거 (가장 짧게)
+
+  document.getElementById('codeArea').textContent = bookmarklet;
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(bookmarklet).then(() => alert('✅ 복사 완료! 이제 북마크에 추가하세요.'));
+  });
 });
 </script>
 </body>
