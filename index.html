@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleExp(pid,mid){
     removeUI(mid);
     const s = sessions[pid];
-    if(s?.root && s.conf) sendDelete(pid,mid);
+    if(s && s.root && s.conf) sendDelete(pid,mid);
     if(s) s.pending = s.pending.filter(m=>m.msgId!==mid);
   }
   setInterval(chkTimers, 1000);
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function getSess(pid){
     if(!sessions[pid]) sessions[pid] = {
       pc:null, dc:null, tyDC:null, tyKey:null, isOff:false,
-      pw:null, root:null, sCK:null, rCK:null, sn:0, rn:0,
+      pw:null, root:null, dispKey:null, sCK:null, rCK:null, sn:0, rn:0,
       oEK:null, tEPub:null, salt:null, oEDH:null, pEDH:null,
       oSK:null, pSK:null, hsDone:false, conf:false, online:false,
       recIds:new Set(), pending:[], fileRcv:null, tyTimer:null,
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ct = document.getElementById('contactList');
     if(!ct) return;
     ct.innerHTML = getCon().filter(c=>!isDest(c.id)).map(c=>{
-      const s = sessions[c.id], on = s?.online, un = s ? s.pending.length : 0;
+      const s = sessions[c.id], on = s?.online || s?.manual, un = s ? s.pending.length : 0;
       return `<div class="contact-card${c.id===activePeerId?' active':''}" data-pid="${c.id}">
         <div class="contact-avatar">${esc(c.name).charAt(0)}<span class="contact-dot${on?' on':' off'}"></span></div>
         <div class="contact-info"><div class="contact-name">${esc(c.name)}${un?` <span class="unread-badge">${un}</span>`:''}</div><div class="contact-status">${on?'온라인':'오프라인'}</div></div>
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = activePeerId ? sessions[activePeerId] : null;
     const isManual = s && s.manual;
     document.getElementById('manualSetupArea').style.display = (isManual && !s.conf) ? 'flex' : 'none';
-    document.getElementById('passwordPrompt').style.display = (isManual && !s.conf) ? 'none' : (s && !s.conf ? 'block' : 'none');
+    document.getElementById('passwordPrompt').style.display = (s && !s.conf) ? 'block' : 'none';
     document.getElementById('normalInputBar').style.display = isManual ? 'none' : 'flex';
     document.getElementById('manualInputBar').style.display = isManual && s.conf ? 'flex' : 'none';
     document.getElementById('timerSelector').style.display = (s && s.conf) ? 'flex' : 'none';
@@ -462,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('emojiBtn').style.display = isManual ? 'none' : '';
     document.getElementById('mediaBtn').style.display = isManual ? 'none' : '';
     document.getElementById('stickerBtn').style.display = isManual ? 'none' : '';
-    // 수동 모드에서는 타이핑 인디케이터 제거
     document.getElementById('typingIndicator').style.display = 'none';
   }
 
@@ -479,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     s.pending.forEach(m => dispMsg(pid, m.content, m.who, m.id));
     s.pending = [];
     document.getElementById('chatTitle').textContent = getCon().find(c=>c.id===pid)?.name || '채팅';
-    upConn(s.online || s.manual); // 수동 모드면 항상 연결된 것처럼 표시
+    upConn(s.online || s.manual);
     updateFp(s);
     updateManualUI();
     resetInact();
@@ -537,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) { alert('지문 확인 불가'); }
   });
 
-  // ─────────────── 암호화 함수 (공통) ───────────────
+  // ─────────────── 암호화 함수 ───────────────
   async function genSign(){ return await crypto.subtle.generateKey(ECDSA, true, ['sign','verify']); }
   async function signData(pr, data){
     const sig = await crypto.subtle.sign({name:'ECDSA', hash:'SHA-512'}, pr, s2b(data));
@@ -562,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ikm = cat(dhBits, s2b(s.pw));
       const hkdf = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
       s.root = await crypto.subtle.deriveBits({name:'HKDF', hash:'SHA-512', salt:authRaw, info:s2b('root')}, hkdf, 256);
+      s.dispKey = s.root.slice(0, 32); // 디스플레이 암호화용 고정 키
       s.oEK = s.oEDH; s.tEPub = s.pEDH;
       const tyRaw = new Uint8Array(s.root).slice(0,16);
       s.tyKey = await crypto.subtle.importKey('raw', tyRaw, AES128, false, ['encrypt','decrypt']);
@@ -665,19 +665,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return obj;
   }
 
-  // 디스플레이 암호화
+  // 디스플레이 암호화 (고정 dispKey 사용)
   async function getDisp(s, plain){
     const dk = await crypto.subtle.generateKey({name:'AES-GCM', length:128}, true, ['encrypt']);
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, dk, s2b(plain));
     const raw = await crypto.subtle.exportKey('raw', dk);
-    const rk = await crypto.subtle.importKey('raw', s.root.slice(0,16), 'AES-GCM', false, ['encrypt']);
+    const rk = await crypto.subtle.importKey('raw', s.dispKey.slice(0,16), 'AES-GCM', false, ['encrypt']);
     const kiv = crypto.getRandomValues(new Uint8Array(12));
     const ek = await crypto.subtle.encrypt({name:'AES-GCM', iv:kiv}, rk, raw);
     return {iv:Array.from(iv), ct:Array.from(new Uint8Array(ct)), keyIv:Array.from(kiv), encKey:Array.from(new Uint8Array(ek))};
   }
   async function decDisp(s, cipher){
-    const rk = await crypto.subtle.importKey('raw', s.root.slice(0,16), 'AES-GCM', false, ['decrypt']);
+    const rk = await crypto.subtle.importKey('raw', s.dispKey.slice(0,16), 'AES-GCM', false, ['decrypt']);
     const raw = await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(cipher.keyIv)}, rk, new Uint8Array(cipher.encKey));
     const dk = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
     const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(cipher.iv)}, dk, new Uint8Array(cipher.ct));
@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
     b.appendChild(del);
     let pt;
     b.addEventListener('pointerdown', e=>{
-      if(isLocked || !s.root) return;
+      if(isLocked || !s.dispKey) return;
       pt = setTimeout(async ()=>{
         if(b.dataset.revealed==='true') return;
         try {
@@ -733,11 +733,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return b;
   }
 
-  // 메시지 UI 추가
   async function addEncDisp(pid, plain, who, mid, timer=0){
     if(pid!==activePeerId || isDest(pid) || isLocked) return;
     const s = sessions[pid];
-    if(!s || !s.root){ addMsgPlain(pid, plain, who, mid); return; }
+    if(!s || !s.dispKey){ addMsgPlain(pid, plain, who, mid); return; }
     try {
       const cipher = await getDisp(s, plain);
       const c = document.getElementById('messages');
@@ -780,10 +779,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function sendDelete(pid, mid){
     const s = sessions[pid];
     if(!s || !s.root || !s.conf) return;
+    if(s.manual) { removeUI(mid); return; } // 수동 모드에서는 전송하지 않음
     removeUI(mid);
     if(s.pending) s.pending = s.pending.filter(m=>m.msgId!==mid);
     const pl = {type:'delete', id:mid};
-    if(!s.manual && s.dc && s.dc.readyState==='open'){
+    if(s.dc && s.dc.readyState==='open'){
       encAndSign(s, pl).then(enc=>s.dc.send(JSON.stringify({type:'msg', ...enc}))).catch(()=>{});
     }
   }
@@ -799,9 +799,10 @@ document.addEventListener('DOMContentLoaded', () => {
     s.recIds.delete(mid);
   }
 
-  // 메시지 전송 (WebRTC / 수동 공통)
+  // 메시지 전송
   async function sendPl(s, pl, display, mid, timer=0){
-    if(!s.manual && s.dc && s.dc.readyState==='open' && s.root && s.conf){
+    if(s.manual) return; // 수동 모드에서는 사용하지 않음
+    if(s.dc && s.dc.readyState==='open' && s.root && s.conf){
       try {
         const enc = await encAndSign(s, pl);
         s.dc.send(JSON.stringify({type:'msg', ...enc}));
@@ -809,11 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       } catch {}
     }
-    if(s.manual && s.root && s.conf){
-      // 수동 모드에서는 바로 표시만 (복사는 encryptManualMessage에서 처리)
-      await addEncDisp(activePeerId, display, 'me', mid, timer);
-    } else if(!s.manual && s.root && s.conf) {
-      // WebRTC 오프라인 큐
+    if(s.root && s.conf) {
       try {
         const enc = await encAndSign(s, pl);
         const q = loadQ(activePeerId); q.push(enc); saveQ(activePeerId, q);
@@ -828,22 +825,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!activePeerId || isDest(activePeerId)) return;
     const s = sessions[activePeerId];
     if(!s || !s.root || !s.conf){ alert('보안 세션 필요'); return; }
-    const inp = s.manual ? document.getElementById('manualMsgInput') : document.getElementById('msgInput');
+    if(s.manual){ alert('수동 모드에서는 "암호화 후 복사"를 사용하세요.'); return; }
+    const inp = document.getElementById('msgInput');
     const txt = inp.value.trim();
     if(!txt) return;
     const mid = uuid();
     const timer = selTimer;
     const pl = {type:'text', content:txt, id:mid, timer};
-    if(s.manual){
-      // 수동 모드: 암호화 후 복사하도록 안내
-      alert('수동 모드에서는 "암호화 후 복사" 버튼을 사용하세요.');
-    } else {
-      await sendPl(s, pl, txt, mid, timer);
-      inp.value = '';
-    }
+    await sendPl(s, pl, txt, mid, timer);
+    inp.value = '';
   }
 
-  // 수동 모드 전용 암호화/복호화
+  // 수동 모드 암호화/복호화
   async function encryptManualMessage(){
     const s = sessions[activePeerId];
     if(!s || !s.root || !s.conf) return alert('보안 세션 없음');
@@ -889,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else { s.pending.push({content:plain, who, msgId:mid, timer:tmr}); renderCon(); }
   }
 
-  // 파일 전송 (WebRTC만)
+  // 파일 전송 (WebRTC 전용)
   async function handleFiles(files){ for(const f of files) await sendFile(f); }
   async function sendFile(file){
     const s = sessions[activePeerId];
@@ -945,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(fi) fi.innerHTML = `📎 <a class="file-download" href="${url}" download="${esc(fn)}">${esc(fn)} 다운로드</a>`;
   }
 
-  // WebRTC 시그널링 (webrtcAvailable일 때만)
+  // WebRTC 시그널링
   function showName(){ document.getElementById('nameModal').classList.remove('hidden'); document.getElementById('peerNameInput').focus(); }
   function closeName(){ document.getElementById('nameModal').classList.add('hidden'); }
   function showJoin(){ showView('answerPanel'); }
@@ -974,7 +967,7 @@ document.addEventListener('DOMContentLoaded', () => {
             s.reconn++;
             setTimeout(()=>{ if(s.pc&&s.pc.iceConnectionState==='failed') try{s.pc.restartIce();}catch{} }, 2000);
           } else {
-            s.hsDone = false; s.root = null; s.sCK = null; s.rCK = null; s.conf = false;
+            s.hsDone = false; s.root = null; s.dispKey = null; s.sCK = null; s.rCK = null; s.conf = false;
             clearQ(pid);
             if(pid===activePeerId) addMsg(pid, '⚠️ 연결 소실', 'system');
           }
@@ -995,7 +988,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if(hasPend(pid)){ trySendDestroy(pid); return; }
       if(s.hsDone){
         addMsg(pid, '🔄 연결 복구', 'system');
-        s.hsDone = false; s.root = null; s.sCK = null; s.rCK = null; s.tyKey = null; s.conf = false;
+        s.hsDone = false; s.root = null; s.dispKey = null; s.sCK = null; s.rCK = null; s.tyKey = null; s.conf = false;
         clearQ(pid);
         startEx(pid);
       } else if(!s.hsDone && !s.root){
@@ -1404,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     g.innerHTML = fav.filter(u=>u.toLowerCase().includes(q)).map(u=>`<div class="picker-item"><img src="${u}" alt="media"></div>`).join('');
   }
 
-  // 타이핑 인디케이터 (WebRTC)
+  // 타이핑
   async function encTyp(s, st){
     if(!s.tyKey) return null;
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -1469,14 +1462,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   ['click','keydown','touchstart','pointermove'].forEach(e=>document.addEventListener(e, resetInact, {passive:true}));
 
-  // 클립보드
-  let cbTimer = null;
-  function schedClr(){
-    clearTimeout(cbTimer);
-    cbTimer = setTimeout(()=>{ if(navigator.clipboard?.writeText) navigator.clipboard.writeText('').catch(()=>{}); }, 10000);
-  }
-
-  // URL 해시 처리 (WebRTC only)
+  // URL 해시 처리
   async function chkHash(){
     if(!webrtcAvailable) return;
     const h = location.hash.substring(1);
@@ -1531,7 +1517,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function bind(){
     document.getElementById('newChatBtn').addEventListener('click', ()=>{
       if(!webrtcAvailable) {
-        // 수동 모드로 바로 이동
         const nm = prompt('상대방 이름을 입력하세요:');
         if(!nm) return;
         const id = uuid();
@@ -1553,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', () => {
       else showJoin();
     });
     document.getElementById('confirmNewChatBtn').addEventListener('click', ()=>{
-      if(!webrtcAvailable) return; // 수동 모드에서는 이 버튼 사용 안함
+      if(!webrtcAvailable) return;
       newWebRTCChat();
     });
     document.getElementById('cancelNewChatBtn').addEventListener('click', closeName);
