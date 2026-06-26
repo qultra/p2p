@@ -3,261 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🔐 인스타 DM 자동 암호화 북마크릿 생성기</title>
+  <title>🔒 인스타 DM 비밀 북마크릿</title>
   <style>
     :root {
-      --bg: #06090f; --surface: #0f141e; --card: rgba(15,20,30,0.9);
-      --text: #e0e5f0; --sub: #8892b0; --accent: #5b8df0; --danger: #f97070;
-      --success: #45d68a; --border: #1a2332; --radius: 20px; --radius-sm: 14px;
+      --bg: #0a0e14; --surface: #141b22; --text: #cdd6e0; --accent: #5190f0;
+      --border: #1e293b; --radius: 16px;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
       display: flex; justify-content: center; align-items: center;
-      min-height: 100dvh; padding: 10px;
+      min-height: 100dvh; padding: 16px;
     }
     .container {
-      width: 100%; max-width: 520px; background: var(--surface);
-      border-radius: 30px; box-shadow: 0 30px 70px rgba(0,0,0,0.7);
-      padding: 20px; display: flex; flex-direction: column; gap: 16px;
+      width: 100%; max-width: 480px; background: var(--surface);
+      border-radius: var(--radius); padding: 24px 20px;
       border: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 20px;
     }
-    h1 {
-      font-size: 1.3rem; text-align: center;
-      background: linear-gradient(135deg,#90b4ff,#b794f4);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    h1 { font-size: 1.4rem; text-align: center; letter-spacing: -0.5px; }
+    .code-box {
+      background: #0f172a; border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; font-family: 'Courier New', monospace;
+      font-size: 0.7rem; word-break: break-all; line-height: 1.4;
+      max-height: 280px; overflow-y: auto; color: #b0bec5;
     }
-    .card { background: var(--card); border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.05); color: white;
-      border: 1px solid var(--border); padding: 14px 20px;
-      border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;
-      font-size: 0.95rem; transition: 0.2s; width: 100%;
+    button {
+      background: var(--accent); color: white; border: none;
+      padding: 14px; border-radius: 12px; font-size: 1rem;
+      font-weight: 600; cursor: pointer; width: 100%;
+      transition: 0.2s; user-select: none; -webkit-user-select: none;
     }
-    .btn.primary { background: var(--accent); border: none; }
-    textarea, input {
-      width: 100%; background: #0a0f18; color: var(--text);
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 12px; font-size: 16px; outline: none; margin: 6px 0;
+    button:active { transform: scale(0.97); }
+    button.copy-btn { background: #2e3b4e; margin-top: 8px; }
+    .steps {
+      font-size: 0.85rem; color: #8b98a5;
+      border-left: 3px solid var(--accent); padding-left: 16px;
     }
-    .hidden { display: none !important; }
-    .text-sub { color: var(--sub); font-size: 0.8rem; }
-    .code-block {
-      background: #0a0f18; border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 12px; font-family: monospace; font-size: 0.65rem; word-break: break-all;
-      max-height: 200px; overflow-y: auto; color: #9aa4bf; margin: 8px 0;
-    }
-    ol { padding-left: 20px; }
+    .steps li { margin: 6px 0; }
+    hr { border: none; border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>🔏 인스타 DM 자동 암호화</h1>
-  <div class="card">
-    <p class="text-sub">
-      비밀번호 하나만 공유하세요.<br>
-      <strong>북마크 한 번</strong>으로 보내는 모든 메시지가 자동으로 암호화되고,<br>
-      받은 암호문은 자동으로 복호화됩니다.
-    </p>
-  </div>
-  <div class="card">
-    <button class="btn primary" id="generateBtn">📌 북마크릿 생성</button>
-  </div>
-  <div id="resultArea" class="hidden">
-    <div class="card">
-      <h3>✅ 북마크릿 코드</h3>
-      <p class="text-sub">아래 코드를 <strong>복사</strong>하여 즐겨찾기(북마크) URL로 등록하세요.</p>
-      <textarea id="bookmarkCode" class="code-block" rows="6" readonly></textarea>
-      <button class="btn primary" id="copyBtn">📋 코드 복사</button>
-    </div>
-  </div>
-  <div class="card">
-    <h3>📖 사용 방법</h3>
+  <h1>🔏 인스타 DM 비밀 채팅</h1>
+  <p style="text-align:center;color:#8895a5;font-size:0.9rem;">
+    아래 북마크릿 코드를 복사하여 <strong>새 북마크의 URL</strong>에 붙여넣으세요.
+  </p>
+  <div class="code-box" id="codeDisplay">로딩 중...</div>
+  <button id="copyBtn">📋 코드 복사</button>
+
+  <hr>
+  <div class="steps">
+    <h3>📌 사용법</h3>
     <ol>
-      <li>상대와 <strong>똑같은 비밀번호</strong>를 약속합니다.</li>
-      <li>위 버튼으로 북마크릿 코드를 생성하고 <strong>북마크로 저장</strong>합니다.</li>
-      <li>인스타그램 웹에서 DM 대화를 열고 <strong>북마크를 클릭</strong>합니다.</li>
-      <li>비밀번호를 입력하면, 대화창 옆에 <strong>🔒 전송 버튼</strong>이 생깁니다.</li>
-      <li>평문을 쓰고 🔒 전송을 누르면 <strong>암호문이 자동 전송</strong>됩니다.</li>
-      <li>상대의 암호문은 <strong>자동으로 평문으로 보여집니다</strong>.</li>
+      <li>상대와 <strong>똑같은 비밀번호</strong>를 미리 약속합니다.</li>
+      <li>인스타그램 웹 DM 화면에서 이 북마크를 <strong>클릭</strong>합니다.</li>
+      <li>처음 한 번 비밀번호를 입력하면, 전송 버튼 옆에 <strong>🔒 전송</strong> 버튼이 생깁니다.</li>
+      <li>평문을 입력하고 <strong>🔒 전송</strong>을 누르면 암호문(🔒:...)으로 자동 전송됩니다.</li>
+      <li>상대가 보낸 암호문은 자동으로 복호화되어 평문으로 표시됩니다.</li>
     </ol>
-  </div>
-  <div class="card">
-    <h3>🛠️ 암호화/복호화 테스트</h3>
-    <input type="password" id="testPw" placeholder="비밀번호">
-    <textarea id="testIn" rows="2" placeholder="평문 또는 암호문"></textarea>
-    <div style="display:flex; gap:8px;">
-      <button class="btn" id="testEnc">🔒 암호화</button>
-      <button class="btn" id="testDec">🔓 복호화</button>
-    </div>
-    <textarea id="testOut" rows="2" readonly placeholder="결과"></textarea>
   </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const te = new TextEncoder();
-  const td = new TextDecoder();
+  // 간결한 북마크릿 코드 생성 (인스타그램 DM 특화)
+  const bookmarklet = `javascript:(function(){
+    if(window.__encInjected) return;
+    window.__encInjected=true;
 
-  const b64url = b => btoa(String.fromCharCode(...new Uint8Array(b)))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  const fromB64url = s => {
-    s = s.replace(/-/g,'+').replace(/_/g,'/');
-    while(s.length%4) s += '=';
-    return Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer;
-  };
+    var te=new TextEncoder(),td=new TextDecoder();
+    var b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');
+    var db64=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer;};
 
-  async function deriveKey(password, salt) {
-    const km = await crypto.subtle.importKey('raw', te.encode(password), 'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 500000, hash: 'SHA-256' },
-      km, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']
-    );
-  }
+    async function k(pw,s){var m=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+    async function e(pw,pt){var s=crypto.getRandomValues(new Uint8Array(16)),key=await k(pw,s),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(pt)),c=new Uint8Array(16+12+ct.byteLength);c.set(s,0);c.set(iv,16);c.set(new Uint8Array(ct),28);return '🔒:'+b64(c.buffer);}
+    async function d(pw,full){if(!full.startsWith('🔒:'))throw new Error();var b=db64(full.slice(2)),s=b.slice(0,16),iv=b.slice(16,28),ct=b.slice(28),key=await k(pw,s),pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return td.decode(pt);}
 
-  async function encrypt(password, plaintext) {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const key = await deriveKey(password, salt);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, te.encode(plaintext));
-    const combined = new Uint8Array(16 + 12 + ct.byteLength);
-    combined.set(salt, 0);
-    combined.set(iv, 16);
-    combined.set(new Uint8Array(ct), 28);
-    return '🔒:' + b64url(combined.buffer);
-  }
+    var pw=sessionStorage.getItem('__encPw');
+    if(!pw){pw=prompt('비밀번호를 입력하세요:','');if(!pw){window.__encInjected=false;return;}sessionStorage.setItem('__encPw',pw);}
 
-  async function decrypt(password, fullCipher) {
-    if (!fullCipher.startsWith('🔒:')) throw new Error('암호문이 아닙니다');
-    const b64Part = fullCipher.slice(2);
-    const buf = new Uint8Array(fromB64url(b64Part));
-    const salt = buf.slice(0,16), iv = buf.slice(16,28), ct = buf.slice(28);
-    const key = await deriveKey(password, salt);
-    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
-    return td.decode(decrypted);
-  }
-
-  // 북마크릿 코드 생성 (인스타그램 DM 통합)
-  function generateBookmarklet() {
-    return `javascript:(function(){
-      if(window.__encDmInjected) return;
-      window.__encDmInjected = true;
-
-      var te = new TextEncoder();
-      var td = new TextDecoder();
-      var b64url = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');
-      var fromB64url = s => { s = s.replace(/-/g,'+').replace(/_/g,'_'); while(s.length%4) s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer; };
-
-      async function deriveKey(pw,salt){var k=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:500000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
-      async function encrypt(pw,pt){var salt=crypto.getRandomValues(new Uint8Array(16));var key=await deriveKey(pw,salt);var iv=crypto.getRandomValues(new Uint8Array(12));var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(pt));var c=new Uint8Array(16+12+ct.byteLength);c.set(salt,0);c.set(iv,16);c.set(new Uint8Array(ct),28);return '🔒:'+b64url(c.buffer);}
-      async function decrypt(pw,full){if(!full.startsWith('🔒:')) throw new Error();var bp=full.slice(2);var buf=new Uint8Array(fromB64url(bp));var salt=buf.slice(0,16),iv=buf.slice(16,28),ct=buf.slice(28);var key=await deriveKey(pw,salt);var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return td.decode(pt);}
-
-      var password = sessionStorage.getItem('__encDmPw');
-      if(!password) {
-        password = prompt('🔐 비밀 DM - 상대와 공유한 비밀번호를 입력하세요:');
-        if(!password) { window.__encDmInjected = false; return; }
-        sessionStorage.setItem('__encDmPw', password);
+    var intv=setInterval(function(){
+      var inp=document.querySelector('[contenteditable="true"][role="textbox"]');
+      var snd=document.querySelector('[data-testid="send-button"], [aria-label="Send"]');
+      if(inp&&snd&&!document.getElementById('__encBtn')){
+        clearInterval(intv);
+        var btn=document.createElement('button');btn.id='__encBtn';btn.textContent='🔒 전송';
+        btn.style='margin-left:6px;padding:8px 12px;background:#5190f0;color:white;border:none;border-radius:16px;font-weight:bold;cursor:pointer;font-size:14px;';
+        snd.parentNode.insertBefore(btn,snd.nextSibling);
+        btn.onclick=async function(ev){ev.preventDefault();ev.stopPropagation();var t=inp.textContent.trim();if(t){try{var c=await e(pw,t);inp.textContent=c;inp.dispatchEvent(new Event('input',{bubbles:true}));setTimeout(function(){snd.click();},80);}catch(ex){alert('오류: '+ex);}}};
       }
+    },600);
+    setTimeout(function(){clearInterval(intv);},12000);
 
-      function injectButton() {
-        var tries = 0;
-        var interval = setInterval(function(){
-          var sendBtn = document.querySelector('[data-testid="send-button"], [aria-label="Send"], form button[type="submit"]');
-          var inputArea = document.querySelector('[contenteditable="true"][role="textbox"]');
-          if(sendBtn && inputArea) {
-            clearInterval(interval);
-            if(document.getElementById('__encSendBtn')) return;
-            var encBtn = document.createElement('button');
-            encBtn.id = '__encSendBtn';
-            encBtn.textContent = '🔒 전송';
-            encBtn.style.cssText = 'margin-left:8px;padding:8px 14px;background:#5b8df0;color:white;border:none;border-radius:20px;cursor:pointer;font-weight:bold;font-size:14px;z-index:9999;';
-            sendBtn.parentNode.insertBefore(encBtn, sendBtn.nextSibling);
-            encBtn.addEventListener('click', async function(e){
-              e.preventDefault();
-              e.stopPropagation();
-              var text = inputArea.textContent.trim();
-              if(!text) return;
-              try {
-                var cipher = await encrypt(password, text);
-                inputArea.textContent = cipher;
-                inputArea.dispatchEvent(new Event('input', {bubbles:true}));
-                setTimeout(function(){ sendBtn.click(); }, 100);
-              } catch(ex) { alert('암호화 오류: '+ex); }
+    var obs=new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType===1){
+            var msgs=n.querySelectorAll?n.querySelectorAll('div[dir="auto"]'):[];
+            if(n.matches&&n.matches('div[dir="auto"]')) msgs=[n];
+            msgs.forEach(async function(el){
+              if(el.dataset.__dec)return;var t=el.textContent.trim();
+              if(t.startsWith('🔒:')){try{el.textContent=await d(pw,t);el.style.color='#4fd68a';el.dataset.__dec=1;}catch(e){}}
             });
           }
-          if(++tries > 40) clearInterval(interval);
-        }, 1000);
-      }
-
-      function observeMessages() {
-        var chatContainer = document.querySelector('[role="grid"]') || document.querySelector('[data-testid="conversation-panel"]') || document.body;
-        if(!chatContainer) return;
-        var observer = new MutationObserver(function(mutations){
-          mutations.forEach(function(m){
-            m.addedNodes.forEach(function(node){
-              if(node.nodeType === 1) {
-                var messages = node.querySelectorAll ? node.querySelectorAll('div[dir="auto"]') : [];
-                if(node.matches && node.matches('div[dir="auto"]')) messages = [node];
-                messages.forEach(async function(msgEl){
-                  if(msgEl.dataset.__decoded) return;
-                  var text = msgEl.textContent.trim();
-                  if(text.startsWith('🔒:')){
-                    try {
-                      var plain = await decrypt(password, text);
-                      msgEl.textContent = plain;
-                      msgEl.style.color = '#45d68a';
-                      msgEl.dataset.__decoded = 'true';
-                    } catch(e) {}
-                  }
-                });
-              }
-            });
-          });
         });
-        observer.observe(chatContainer, { childList: true, subtree: true });
-      }
+      });
+    });
+    obs.observe(document.body,{childList:true,subtree:true});
+  })();`.replace(/\s+/g, ' '); // 공백을 최소화하여 한 줄로
 
-      injectButton();
-      observeMessages();
-      alert('✅ 비밀 DM 활성화! 입력창 옆 🔒 전송 버튼을 사용하세요.');
-    })();`;
-  }
-
-  document.getElementById('generateBtn').addEventListener('click', () => {
-    const code = generateBookmarklet();
-    document.getElementById('bookmarkCode').value = code;
-    document.getElementById('resultArea').classList.remove('hidden');
-  });
-
+  document.getElementById('codeDisplay').textContent = bookmarklet;
   document.getElementById('copyBtn').addEventListener('click', () => {
-    const code = document.getElementById('bookmarkCode').value;
-    navigator.clipboard.writeText(code).then(() => alert('북마크릿 코드가 복사되었습니다. 즐겨찾기에 추가하세요!'));
+    navigator.clipboard.writeText(bookmarklet).then(() => {
+      alert('✅ 북마크릿 코드가 복사되었습니다!\n이제 브라우저 북마크의 URL에 붙여넣으세요.');
+    }).catch(() => {
+      // fallback
+      document.getElementById('codeDisplay').select();
+      document.execCommand('copy');
+      alert('✅ 코드가 선택되었습니다. 수동으로 복사해주세요.');
+    });
   });
-
-  // 테스트 암호화/복호화
-  document.getElementById('testEnc').addEventListener('click', async () => {
-    const pw = document.getElementById('testPw').value;
-    const pt = document.getElementById('testIn').value;
-    if(!pw || !pt) return alert('비밀번호와 평문을 입력하세요.');
-    try {
-      const result = await encrypt(pw, pt);
-      document.getElementById('testOut').value = result;
-    } catch(e) { alert('암호화 실패: '+e.message); }
-  });
-
-  document.getElementById('testDec').addEventListener('click', async () => {
-    const pw = document.getElementById('testPw').value;
-    const ct = document.getElementById('testIn').value;
-    if(!pw || !ct) return alert('비밀번호와 암호문을 입력하세요.');
-    try {
-      const result = await decrypt(pw, ct);
-      document.getElementById('testOut').value = result;
-    } catch(e) { alert('복호화 실패: '+e.message); }
-  });
-
-  // 자동 생성
-  document.getElementById('generateBtn').click();
 });
 </script>
 </body>
