@@ -2,99 +2,699 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🔒 초간편 비밀 DM 북마크릿</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Serenity OS · 완전한 생산성</title>
+  <meta name="description" content="목표부터 습관까지, 완벽하게 설계된 개인 생산성 시스템">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: system-ui, sans-serif; background: #0a0e14; color: #cdd6e0; padding: 20px; }
-    .box { max-width: 500px; margin: 0 auto; background: #141b22; border-radius: 20px; padding: 24px; border: 1px solid #1e293b; }
-    h1 { font-size: 1.3rem; text-align: center; margin-bottom: 12px; }
-    .code { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; font-family: monospace; font-size: 0.65rem; word-break: break-all; line-height: 1.4; height: 100px; overflow-y: auto; }
-    button { width: 100%; padding: 14px; background: #5190f0; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; cursor: pointer; }
-    button.copy { background: #2e3b4e; }
-    ul { margin: 12px 0; padding-left: 20px; color: #8895a5; font-size: 0.85rem; }
-    li { margin: 6px 0; }
-    .note { background: #1e293b; padding: 10px; border-radius: 10px; font-size: 0.8rem; margin-top: 16px; color: #8895a5; }
+    :root {
+      --bg-base: #090e18;
+      --bg-layer: #111827;
+      --bg-card: rgba(20, 28, 45, 0.7);
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-mid: rgba(255,255,255,0.12);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-hint: #64748b;
+      --accent: #a78bfa;
+      --accent-soft: rgba(167,139,250,0.15);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --ease: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      background: radial-gradient(ellipse at 30% 20%, #1e293b 0%, #0a0f1a 60%);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      letter-spacing: -0.01em;
+    }
+    .app-frame {
+      width: 100%; height: 100%;
+      max-width: 1440px; max-height: 900px;
+      display: flex;
+      backdrop-filter: blur(24px);
+      background: rgba(10, 15, 24, 0.5);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    @media (min-width: 769px) {
+      .app-frame { border-radius: var(--radius-lg); margin: 20px; height: calc(100vh - 40px); }
+    }
+    /* 사이드바 */
+    .sidebar {
+      width: 280px; min-width: 280px;
+      background: rgba(10, 15, 24, 0.7); backdrop-filter: blur(30px);
+      border-right: 1px solid var(--border-mid);
+      display: flex; flex-direction: column;
+      padding: 28px 18px; z-index: 10;
+    }
+    .logo {
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 36px; padding-left: 10px;
+    }
+    .nav-list { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: var(--radius-sm);
+      color: var(--text-secondary); font-weight: 500;
+      cursor: pointer; transition: var(--ease);
+      border: 1px solid transparent;
+      font-size: 0.94rem;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); border-color: var(--border-mid); }
+    .nav-item.active {
+      background: var(--accent-soft); color: #fff;
+      border-color: var(--accent); box-shadow: 0 0 20px rgba(167,139,250,0.2);
+      font-weight: 600;
+    }
+    .nav-item .icon { font-size: 1.3rem; width: 26px; text-align: center; }
+    .bottom-actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border-mid);
+      color: var(--text-primary); font-family: var(--font); font-size: 0.85rem;
+      font-weight: 500; cursor: pointer; transition: var(--ease);
+      white-space: nowrap; backdrop-filter: blur(8px);
+    }
+    .btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); }
+    .btn-primary { background: var(--accent); border: none; color: #090e18; font-weight: 600; box-shadow: 0 8px 22px rgba(167,139,250,0.3); }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+    /* 메인 */
+    .main-panel {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 28px 32px; overflow-y: auto; overflow-x: hidden;
+    }
+    .view-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+    }
+    .view-title { font-size: 1.9rem; font-weight: 600; letter-spacing: -0.03em; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .card {
+      background: var(--bg-card); backdrop-filter: blur(18px);
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+      padding: 22px; transition: var(--ease);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+    .card:hover { border-color: var(--border-mid); transform: translateY(-2px); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .progress-bar {
+      height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px;
+      margin: 12px 0; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 6px; transition: width 0.5s; }
+    input, textarea, select {
+      background: rgba(0,0,0,0.2); border: 1px solid var(--border-mid);
+      border-radius: var(--radius-sm); padding: 11px 14px;
+      color: #fff; font-family: var(--font); font-size: 0.9rem;
+      outline: none; width: 100%; transition: var(--ease);
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 18px rgba(167,139,250,0.2); }
+    textarea { resize: vertical; min-height: 80px; }
+    .task-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .task-row:last-child { border-bottom: none; }
+    .habit-dot {
+      width: 18px; height: 18px; border-radius: 5px;
+      background: rgba(255,255,255,0.08); cursor: pointer; transition: var(--ease);
+    }
+    .habit-dot.done { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; font-size: 0.85rem; cursor: pointer; transition: var(--ease);
+      position: relative;
+    }
+    .cal-day:hover { background: rgba(255,255,255,0.06); }
+    .cal-day.today { border: 2px solid var(--accent); font-weight: 700; }
+    .cal-day.has-event::after { content: ''; position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+    .pomodoro-ring {
+      width: 140px; height: 140px; border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 2.4rem; font-family: var(--font-mono);
+      background: radial-gradient(circle, rgba(167,139,250,0.1), transparent);
+      position: relative;
+    }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; backdrop-filter: blur(4px);
+    }
+    .modal-box {
+      background: var(--bg-layer); border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg); padding: 28px;
+      width: 480px; max-width: 92%; box-shadow: 0 30px 50px rgba(0,0,0,0.8);
+    }
+    .search-bar {
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border-mid);
+      border-radius: 40px; padding: 10px 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .search-bar input { background: transparent; border: none; padding: 0; }
+    @media (max-width: 768px) {
+      .sidebar { width: 70px; min-width: 70px; padding: 16px 8px; }
+      .nav-item { justify-content: center; padding: 12px; }
+      .nav-item span { display: none; }
+      .logo { font-size: 1.4rem; text-align: center; }
+      .main-panel { padding: 18px 14px; }
+      .view-title { font-size: 1.4rem; }
+    }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); margin: 2px; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1em; }
+    .markdown-body ul, .markdown-body ol { padding-left: 1.5em; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>🔏 인스타 DM 비밀 채팅</h1>
-    <p style="text-align:center; font-size:0.9rem; margin-bottom:16px;">북마크 한 방이면 끝!</p>
-    <div class="code" id="codeArea"></div>
-    <button id="copyBtn" class="copy">📋 코드 복사</button>
-
-    <div class="note" style="margin-top:20px;">
-      <strong>📱 iOS Safari에서 사용하기</strong>
-      <ul>
-        <li>코드를 복사한 뒤, Safari 주소창에 <code>javascript:</code>를 먼저 입력하고 붙여넣기</li>
-        <li>또는 <strong>공유 → 책갈피 추가 → 저장한 책갈피를 편집</strong>하여 URL을 위 코드로 변경</li>
-        <li>혹은 <strong>단축어 앱</strong>에서 <em>Safari에서 JavaScript 실행</em> 동작에 붙여넣기</li>
-      </ul>
+<div class="app-frame">
+  <aside class="sidebar">
+    <div class="logo">✦ Serenity</div>
+    <nav class="nav-list">
+      <div class="nav-item active" data-view="dashboard"><span class="icon">◈</span> <span>대시보드</span></div>
+      <div class="nav-item" data-view="goals"><span class="icon">⬡</span> <span>목표</span></div>
+      <div class="nav-item" data-view="tasks"><span class="icon">☰</span> <span>작업</span></div>
+      <div class="nav-item" data-view="calendar"><span class="icon">◷</span> <span>캘린더</span></div>
+      <div class="nav-item" data-view="habits"><span class="icon">⌘</span> <span>습관</span></div>
+      <div class="nav-item" data-view="notes"><span class="icon">✎</span> <span>노트</span></div>
+    </nav>
+    <div class="bottom-actions">
+      <button class="btn" id="syncBtn" style="width:100%;">☁️ 동기화</button>
+      <button class="btn" id="exportBtn" style="width:100%;">⬆️ 백업 내보내기</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()" style="width:100%;">⬇️ 백업 가져오기</button>
+      <input type="file" id="importFile" accept=".json" hidden>
     </div>
-  </div>
+  </aside>
+  <main class="main-panel" id="mainContent"></main>
+</div>
+<div id="modalRoot"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // 가장 간결한 북마크릿 코드 (비밀번호 프롬프트 → 버튼 추가 → 자동 복호화)
-  const bookmarklet = `javascript:(function(){
-    var p=sessionStorage.getItem('_pw')||prompt('비밀번호 입력:','');
-    if(!p)return;
-    sessionStorage.setItem('_pw',p);
+// ==================== IndexedDB 엔진 ====================
+const DB_NAME = 'serenity_db', DB_VER = 1;
+let db;
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('goals')) db.createObjectStore('goals', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('tasks')) db.createObjectStore('tasks', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('habits')) db.createObjectStore('habits', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('habitLogs')) db.createObjectStore('habitLogs', { keyPath: ['habitId', 'date'] });
+      if (!db.objectStoreNames.contains('notes')) db.createObjectStore('notes', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('events')) db.createObjectStore('events', { keyPath: 'id' });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+  });
+}
+function tx(store, mode = 'readonly') { return db.transaction(store, mode).objectStore(store); }
+function getAll(store) { return new Promise(r => { const req = tx(store).getAll(); req.onsuccess = () => r(req.result); }); }
+function get(store, id) { return new Promise(r => { const req = tx(store).get(id); req.onsuccess = () => r(req.result); }); }
+function put(store, data) { return new Promise(r => { const req = tx(store, 'readwrite').put(data); req.onsuccess = () => r(req.result); }); }
+function del(store, id) { return new Promise(r => { const req = tx(store, 'readwrite').delete(id); req.onsuccess = () => r(); }); }
+function clear(store) { return new Promise(r => { const req = tx(store, 'readwrite').clear(); req.onsuccess = () => r(); }); }
 
-    var enc=async(t)=>{var s=crypto.getRandomValues(new Uint8Array(16)),
-    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
-    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt']),
-    iv=crypto.getRandomValues(new Uint8Array(12)),
-    ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},dk,new TextEncoder().encode(t)),
-    c=new Uint8Array(16+12+ct.byteLength);c.set(s,0);c.set(iv,16);c.set(new Uint8Array(ct),28);
-    return'🔒:'+btoa(String.fromCharCode(...c)).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'');};
+// ==================== 글로벌 상태 ====================
+let currentView = 'dashboard';
+let pomodoroInterval, pomodoroMinutes = 25, pomodoroSeconds = 0, pomodoroRunning = false;
 
-    var dec=async(f)=>{var b=Uint8Array.from(atob(f.slice(2).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)),
-    s=b.slice(0,16),iv=b.slice(16,28),ct=b.slice(28),
-    k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']),
-    dk=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']),
-    pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},dk,ct);
-    return new TextDecoder().decode(pt);};
-
-    var t=setInterval(function(){
-      var inp=document.querySelector('[contenteditable="true"][role="textbox"]');
-      var snd=document.querySelector('[data-testid="send-button"], [aria-label="Send"]');
-      if(inp&&snd&&!document.getElementById('__eBtn')){
-        clearInterval(t);
-        var btn=document.createElement('button');btn.id='__eBtn';btn.textContent='🔒 전송';
-        btn.style='margin-left:6px;padding:8px 12px;background:#5190f0;color:#fff;border:none;border-radius:16px;font-weight:bold;cursor:pointer;';
-        snd.parentNode.insertBefore(btn,snd.nextSibling);
-        btn.onclick=async function(e){e.preventDefault();e.stopPropagation();
-          var txt=inp.textContent.trim();if(txt){inp.textContent=await enc(txt);
-          inp.dispatchEvent(new Event('input',{bubbles:true}));setTimeout(function(){snd.click();},80);}};
-      }
-    },500);
-    setTimeout(function(){clearInterval(t);},10000);
-
-    var mo=new MutationObserver(function(ms){
-      ms.forEach(function(m){
-        m.addedNodes.forEach(function(n){
-          if(n.nodeType===1){
-            var msgs=n.querySelectorAll?n.querySelectorAll('div[dir="auto"]'):[];
-            if(n.matches&&n.matches('div[dir="auto"]')) msgs=[n];
-            msgs.forEach(async function(el){
-              if(el.dataset._done)return;var txt=el.textContent.trim();
-              if(txt.startsWith('🔒:')){try{el.textContent=await dec(txt);el.style.color='#4fd68a';el.dataset._done=1;}catch(e){}}
-            });
-          }
-        });
-      });
-    });
-    mo.observe(document.body,{childList:true,subtree:true});
-  })();`.replace(/\s+/g, ''); // 모든 공백 제거 (가장 짧게)
-
-  document.getElementById('codeArea').textContent = bookmarklet;
-
-  document.getElementById('copyBtn').addEventListener('click', () => {
-    navigator.clipboard.writeText(bookmarklet).then(() => alert('✅ 복사 완료! 이제 북마크에 추가하세요.'));
+// ==================== 네비게이션 ====================
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    currentView = el.dataset.view;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    renderView();
   });
 });
+
+// ==================== 렌더링 디스패처 ====================
+async function renderView() {
+  const main = document.getElementById('mainContent');
+  switch (currentView) {
+    case 'dashboard': main.innerHTML = await renderDashboard(); break;
+    case 'goals': main.innerHTML = await renderGoals(); break;
+    case 'tasks': main.innerHTML = await renderTasks(); break;
+    case 'calendar': main.innerHTML = await renderCalendar(); break;
+    case 'habits': main.innerHTML = await renderHabits(); break;
+    case 'notes': main.innerHTML = await renderNotes(); break;
+  }
+  bindEvents();
+}
+
+// ==================== 대시보드 ====================
+async function renderDashboard() {
+  const tasks = await getAll('tasks');
+  const habits = await getAll('habits');
+  const goals = await getAll('goals');
+  const today = new Date().toISOString().split('T')[0];
+  const todayTasks = tasks.filter(t => t.dueDate === today || !t.done);
+  const doneToday = tasks.filter(t => t.done && t.completedDate === today).length;
+  const habitLogs = [];
+  for (let h of habits) {
+    const log = await get('habitLogs', [h.id, today]);
+    habitLogs.push({ ...h, doneToday: log ? log.value : false });
+  }
+
+  return `
+    <div class="view-header">
+      <h2 class="view-title">오늘의 집중</h2>
+      <span style="color:var(--text-secondary)">${new Date().toLocaleDateString('ko-KR', {weekday:'long', month:'long', day:'numeric'})}</span>
+    </div>
+    <div class="grid-auto">
+      <div class="card">
+        <div class="card-header"><strong>⏳ 뽀모도로</strong><span class="btn btn-sm" id="resetPomodoro">리셋</span></div>
+        <div class="pomodoro-ring" id="pomodoroDisplay">${String(pomodoroMinutes).padStart(2,'0')}:${String(pomodoroSeconds).padStart(2,'0')}</div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="btn btn-primary" id="startPomodoro">▶ 시작</button>
+          <button class="btn" id="pausePomodoro">⏸ 일시정지</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><strong>📌 오늘의 작업</strong> <span>${doneToday}/${todayTasks.length} 완료</span></div>
+        ${todayTasks.slice(0,5).map(t => `
+          <div class="task-row">
+            <input type="checkbox" ${t.done?'checked':''} data-task-id="${t.id}" class="task-check" style="width:18px;height:18px;accent-color:var(--accent);">
+            <span style="flex:1; text-decoration:${t.done?'line-through':'none'}; opacity:${t.done?0.5:1}">${t.title}</span>
+            <span style="color:var(--text-hint); font-size:0.8rem;">${t.priority||''}</span>
+          </div>
+        `).join('') || '<p style="color:var(--text-hint)">작업을 추가하세요</p>'}
+      </div>
+      <div class="card">
+        <div class="card-header"><strong>🌱 오늘의 습관</strong></div>
+        ${habitLogs.map(h => `
+          <div class="task-row">
+            <span style="flex:1;">${h.title}</span>
+            <div class="habit-dot ${h.doneToday?'done':''}" data-habit-id="${h.id}" data-date="${today}" style="width:24px;height:24px;"></div>
+          </div>
+        `).join('') || '<p style="color:var(--text-hint)">습관을 추가하세요</p>'}
+      </div>
+      <div class="card">
+        <div class="card-header"><strong>📊 목표 진행</strong></div>
+        ${goals.map(g => {
+          const projTasks = tasks.filter(t => t.goalId === g.id);
+          const done = projTasks.filter(t => t.done).length;
+          const pct = projTasks.length ? Math.round(done/projTasks.length*100) : 0;
+          return `<div style="margin-bottom:14px;"><span>${g.title}</span> <span style="color:var(--text-hint)">${pct}%</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;
+        }).join('') || '<p style="color:var(--text-hint)">목표를 설계하세요</p>'}
+      </div>
+    </div>`;
+}
+
+// ==================== 목표 & 프로젝트 ====================
+async function renderGoals() {
+  const goals = await getAll('goals');
+  const projects = await getAll('projects');
+  const tasks = await getAll('tasks');
+  return `
+    <div class="view-header">
+      <h2 class="view-title">목표 설계</h2>
+      <button class="btn btn-primary" id="addGoalBtn">+ 새 목표</button>
+    </div>
+    <div class="grid-auto">
+      ${goals.map(g => {
+        const gProjs = projects.filter(p => p.goalId === g.id);
+        const gTasks = tasks.filter(t => t.goalId === g.id || gProjs.some(p => p.id === t.projectId));
+        const done = gTasks.filter(t => t.done).length;
+        const pct = gTasks.length ? Math.round(done/gTasks.length*100) : 0;
+        return `
+        <div class="card">
+          <div class="card-header">
+            <strong>${g.title}</strong>
+            <span style="color:var(--text-hint)">${pct}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          ${gProjs.map(p => `<div style="margin:6px 0;">📁 ${p.title} <button class="btn btn-sm" data-del-proj="${p.id}">🗑</button></div>`).join('')}
+          <div style="margin-top:12px; display:flex; gap:6px;">
+            <button class="btn btn-sm" data-add-proj="${g.id}">+ 프로젝트</button>
+            <button class="btn btn-sm" data-del-goal="${g.id}">목표 삭제</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ==================== 작업 관리 ====================
+async function renderTasks() {
+  const tasks = await getAll('tasks');
+  return `
+    <div class="view-header">
+      <h2 class="view-title">모든 작업</h2>
+      <div style="display:flex; gap:8px;">
+        <input id="newTaskInput" placeholder="새 작업 추가..." style="width:200px;">
+        <select id="newTaskGoal" style="width:140px;">
+          <option value="">목표 선택</option>
+          ${(await getAll('goals')).map(g => `<option value="${g.id}">${g.title}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" id="addTaskBtn">추가</button>
+      </div>
+    </div>
+    <div class="grid-auto">
+      ${tasks.map(t => `
+        <div class="card" style="opacity:${t.done?0.5:1}">
+          <div class="task-row">
+            <input type="checkbox" ${t.done?'checked':''} data-task-id="${t.id}" class="task-check" style="width:18px;height:18px;accent-color:var(--accent);">
+            <span style="flex:1; text-decoration:${t.done?'line-through':'none'}">${t.title}</span>
+            <span class="tag">${t.priority||'보통'}</span>
+            <button class="btn btn-sm" data-del-task="${t.id}">🗑</button>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-hint)">마감: ${t.dueDate||'없음'}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ==================== 캘린더 ====================
+async function renderCalendar() {
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDate = new Date(year, month+1, 0).getDate();
+  const events = await getAll('events');
+  let html = `<div class="view-header"><h2 class="view-title">${year}년 ${month+1}월</h2><button class="btn btn-primary" id="addEventBtn">+ 일정</button></div>`;
+  html += '<div class="calendar-grid">';
+  const dayNames = ['일','월','화','수','목','금','토'];
+  dayNames.forEach(d => html += `<div style="text-align:center; font-size:0.8rem; color:var(--text-hint); padding:8px;">${d}</div>`);
+  for (let i=0; i<firstDay; i++) html += '<div></div>';
+  for (let d=1; d<=lastDate; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasEvent = events.some(e => e.date === dateStr);
+    const todayClass = (d===now.getDate() && month===now.getMonth() && year===now.getFullYear()) ? 'today' : '';
+    html += `<div class="cal-day ${todayClass} ${hasEvent?'has-event':''}" data-date="${dateStr}">${d}</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+// ==================== 습관 추적 ====================
+async function renderHabits() {
+  const habits = await getAll('habits');
+  const today = new Date();
+  const dates = [];
+  for (let i=13; i>=0; i--) {
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  let html = `<div class="view-header"><h2 class="view-title">습관 추적</h2><button class="btn btn-primary" id="addHabitBtn">+ 습관</button></div>`;
+  for (let h of habits) {
+    html += `<div class="card" style="margin-bottom:12px;"><strong>${h.title}</strong><button class="btn btn-sm" data-del-habit="${h.id}" style="float:right;">🗑</button><div style="display:flex; gap:4px; margin-top:10px;">`;
+    for (let date of dates) {
+      const log = await get('habitLogs', [h.id, date]);
+      html += `<div class="habit-dot ${log&&log.value?'done':''}" data-habit-id="${h.id}" data-date="${date}" title="${date}"></div>`;
+    }
+    html += '</div></div>';
+  }
+  return html;
+}
+
+// ==================== 노트 (마크다운 + 요약) ====================
+async function renderNotes() {
+  const notes = await getAll('notes');
+  return `
+    <div class="view-header">
+      <h2 class="view-title">노트</h2>
+      <button class="btn btn-primary" id="addNoteBtn">+ 새 노트</button>
+    </div>
+    <div class="search-bar" style="margin-bottom:18px;">
+      <span>🔍</span><input id="noteSearch" placeholder="노트 검색...">
+    </div>
+    <div class="grid-auto" id="noteList">
+      ${notes.map(n => `
+        <div class="card" data-note-id="${n.id}" style="cursor:pointer;">
+          <strong>${n.title}</strong>
+          <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:6px;">${(n.content||'').substring(0,80)}...</p>
+          <div style="margin-top:8px;">${(n.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div style="font-size:0.7rem; color:var(--text-hint); margin-top:4px;">${new Date(n.updatedAt).toLocaleString()}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ==================== 이벤트 바인딩 ====================
+function bindEvents() {
+  // 대시보드
+  document.getElementById('startPomodoro')?.addEventListener('click', startPomodoro);
+  document.getElementById('pausePomodoro')?.addEventListener('click', pausePomodoro);
+  document.getElementById('resetPomodoro')?.addEventListener('click', resetPomodoro);
+  document.querySelectorAll('.task-check').forEach(cb => cb.addEventListener('change', toggleTask));
+  document.querySelectorAll('.habit-dot[data-habit-id]').forEach(d => d.addEventListener('click', toggleHabitDot));
+
+  // 목표
+  document.getElementById('addGoalBtn')?.addEventListener('click', addGoal);
+  document.querySelectorAll('[data-add-proj]').forEach(b => b.addEventListener('click', () => addProject(b.dataset.addProj)));
+  document.querySelectorAll('[data-del-goal]').forEach(b => b.addEventListener('click', () => deleteGoal(b.dataset.delGoal)));
+  document.querySelectorAll('[data-del-proj]').forEach(b => b.addEventListener('click', () => deleteProject(b.dataset.delProj)));
+
+  // 작업
+  document.getElementById('addTaskBtn')?.addEventListener('click', addTask);
+  document.querySelectorAll('[data-del-task]').forEach(b => b.addEventListener('click', () => deleteTask(b.dataset.delTask)));
+
+  // 캘린더
+  document.getElementById('addEventBtn')?.addEventListener('click', () => showEventModal());
+  document.querySelectorAll('.cal-day').forEach(d => d.addEventListener('click', () => showEventModal(d.dataset.date)));
+
+  // 습관
+  document.getElementById('addHabitBtn')?.addEventListener('click', addHabit);
+  document.querySelectorAll('[data-del-habit]').forEach(b => b.addEventListener('click', () => deleteHabit(b.dataset.delHabit)));
+
+  // 노트
+  document.getElementById('addNoteBtn')?.addEventListener('click', () => showNoteModal());
+  document.querySelectorAll('[data-note-id]').forEach(c => c.addEventListener('click', () => showNoteModal(c.dataset.noteId)));
+  document.getElementById('noteSearch')?.addEventListener('input', filterNotes);
+}
+
+// ==================== 포모도로 ====================
+function startPomodoro() {
+  if (pomodoroRunning) return;
+  pomodoroRunning = true;
+  pomodoroInterval = setInterval(() => {
+    if (pomodoroSeconds === 0) {
+      if (pomodoroMinutes === 0) {
+        clearInterval(pomodoroInterval);
+        pomodoroRunning = false;
+        alert('🍅 뽀모도로 완료! 5분 휴식하세요.');
+        pomodoroMinutes = 5; pomodoroSeconds = 0;
+        updatePomodoroDisplay();
+        return;
+      }
+      pomodoroMinutes--; pomodoroSeconds = 59;
+    } else { pomodoroSeconds--; }
+    updatePomodoroDisplay();
+  }, 1000);
+}
+function pausePomodoro() { clearInterval(pomodoroInterval); pomodoroRunning = false; }
+function resetPomodoro() { clearInterval(pomodoroInterval); pomodoroRunning = false; pomodoroMinutes = 25; pomodoroSeconds = 0; updatePomodoroDisplay(); }
+function updatePomodoroDisplay() {
+  const el = document.getElementById('pomodoroDisplay');
+  if (el) el.textContent = `${String(pomodoroMinutes).padStart(2,'0')}:${String(pomodoroSeconds).padStart(2,'0')}`;
+}
+
+// ==================== CRUD 작업 ====================
+async function toggleTask(e) {
+  const id = parseInt(e.target.dataset.taskId);
+  const task = await get('tasks', id);
+  if (task) {
+    task.done = e.target.checked;
+    task.completedDate = task.done ? new Date().toISOString().split('T')[0] : null;
+    await put('tasks', task);
+    renderView();
+  }
+}
+async function addTask() {
+  const title = document.getElementById('newTaskInput')?.value;
+  const goalId = document.getElementById('newTaskGoal')?.value;
+  if (!title) return;
+  const id = Date.now();
+  await put('tasks', { id, title, done: false, priority: '보통', goalId: parseInt(goalId)||null, projectId: null, dueDate: '', completedDate: null, createdAt: new Date().toISOString() });
+  renderView();
+}
+async function deleteTask(id) { await del('tasks', parseInt(id)); renderView(); }
+
+async function addGoal() {
+  const title = prompt('목표 이름:');
+  if (!title) return;
+  await put('goals', { id: Date.now(), title });
+  renderView();
+}
+async function deleteGoal(id) { if(confirm('목표와 모든 하위 프로젝트/작업이 삭제됩니다.')){ await del('goals', parseInt(id)); renderView(); } }
+async function addProject(goalId) {
+  const title = prompt('프로젝트 이름:');
+  if (!title) return;
+  await put('projects', { id: Date.now(), goalId: parseInt(goalId), title });
+  renderView();
+}
+async function deleteProject(id) { await del('projects', parseInt(id)); renderView(); }
+
+async function addHabit() {
+  const title = prompt('습관 이름:');
+  if (!title) return;
+  await put('habits', { id: Date.now(), title });
+  renderView();
+}
+async function deleteHabit(id) { await del('habits', parseInt(id)); renderView(); }
+async function toggleHabitDot(e) {
+  const habitId = parseInt(e.target.dataset.habitId);
+  const date = e.target.dataset.date;
+  const key = [habitId, date];
+  const existing = await get('habitLogs', key);
+  await put('habitLogs', { habitId, date, value: existing ? !existing.value : true });
+  renderView();
+}
+
+function showEventModal(prefillDate = '') {
+  const modal = document.getElementById('modalRoot');
+  modal.innerHTML = `
+    <div class="modal-overlay" id="eventModalOverlay">
+      <div class="modal-box">
+        <h3>일정 추가</h3>
+        <input id="eventTitle" placeholder="일정 제목" value="">
+        <input type="date" id="eventDate" value="${prefillDate || new Date().toISOString().split('T')[0]}" style="margin-top:10px;">
+        <div style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn" id="closeEventModal">취소</button>
+          <button class="btn btn-primary" id="saveEvent">저장</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('closeEventModal').addEventListener('click', () => modal.innerHTML = '');
+  document.getElementById('saveEvent').addEventListener('click', async () => {
+    const title = document.getElementById('eventTitle').value;
+    const date = document.getElementById('eventDate').value;
+    if (title) { await put('events', { id: Date.now(), title, date }); modal.innerHTML = ''; renderView(); }
+  });
+}
+
+async function showNoteModal(noteId = null) {
+  const modal = document.getElementById('modalRoot');
+  let note = noteId ? await get('notes', parseInt(noteId)) : { id: Date.now(), title: '', content: '', tags: [], updatedAt: new Date().toISOString() };
+  modal.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box" style="width:700px; max-height:85vh; overflow-y:auto;">
+        <input id="noteTitle" value="${note.title}" placeholder="노트 제목" style="margin-bottom:12px;">
+        <textarea id="noteContent" style="height:200px; font-family:var(--font-mono); font-size:0.85rem;">${note.content}</textarea>
+        <input id="noteTags" placeholder="태그 (쉼표 구분)" value="${(note.tags||[]).join(',')}" style="margin-top:8px;">
+        <div style="margin-top:4px; font-size:0.8rem; color:var(--text-hint);">마크다운 지원</div>
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer; color:var(--accent);">📝 미리보기 & 요약</summary>
+          <div class="markdown-body" id="notePreview" style="padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; margin-top:8px; max-height:200px; overflow-y:auto;"></div>
+          <button class="btn btn-sm" id="summarizeBtn" style="margin-top:8px;">🤖 자동 요약</button>
+          <div id="summaryResult" style="margin-top:8px; padding:8px; background:var(--accent-soft); border-radius:8px; display:none;"></div>
+        </details>
+        <div style="margin-top:14px; display:flex; gap:8px; justify-content:space-between;">
+          <button class="btn" id="deleteNoteBtn" style="color:var(--danger);">🗑 삭제</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn" id="closeNoteModal">취소</button>
+            <button class="btn btn-primary" id="saveNote">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const updatePreview = () => {
+    const content = document.getElementById('noteContent').value;
+    document.getElementById('notePreview').innerHTML = simpleMarkdown(content);
+  };
+  document.getElementById('noteContent').addEventListener('input', updatePreview);
+  updatePreview();
+  document.getElementById('summarizeBtn').addEventListener('click', () => {
+    const content = document.getElementById('noteContent').value;
+    const sentences = content.split(/[.!?]+/).filter(s=>s.trim().length>10);
+    const summary = sentences.slice(0, Math.min(3, sentences.length)).join('. ') + '.';
+    const el = document.getElementById('summaryResult');
+    el.style.display = 'block';
+    el.textContent = '📌 요약: ' + summary;
+  });
+  document.getElementById('closeNoteModal').addEventListener('click', () => modal.innerHTML = '');
+  document.getElementById('saveNote').addEventListener('click', async () => {
+    const title = document.getElementById('noteTitle').value;
+    const content = document.getElementById('noteContent').value;
+    const tags = document.getElementById('noteTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    await put('notes', { ...note, title, content, tags, updatedAt: new Date().toISOString() });
+    modal.innerHTML = ''; renderView();
+  });
+  document.getElementById('deleteNoteBtn').addEventListener('click', async () => {
+    if (confirm('노트를 삭제할까요?')) { await del('notes', note.id); modal.innerHTML = ''; renderView(); }
+  });
+}
+
+function simpleMarkdown(text) {
+  return text
+    .replace(/### (.*)/g, '<h3>$1</h3>')
+    .replace(/## (.*)/g, '<h2>$1</h2>')
+    .replace(/# (.*)/g, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/- (.*)/g, '<li>$1</li>')
+    .replace(/\n/g, '<br>');
+}
+
+async function filterNotes(e) {
+  const q = e.target.value.toLowerCase();
+  const notes = await getAll('notes');
+  const list = document.getElementById('noteList');
+  list.innerHTML = notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
+    .map(n => `<div class="card" data-note-id="${n.id}" style="cursor:pointer;"><strong>${n.title}</strong><p>${n.content.substring(0,80)}...</p></div>`).join('');
+  document.querySelectorAll('#noteList [data-note-id]').forEach(c => c.addEventListener('click', () => showNoteModal(c.dataset.noteId)));
+}
+
+// ==================== 동기화 & 백업 ====================
+async function exportAll() {
+  const data = {
+    goals: await getAll('goals'), projects: await getAll('projects'), tasks: await getAll('tasks'),
+    habits: await getAll('habits'), habitLogs: await getAll('habitLogs'), notes: await getAll('notes'), events: await getAll('events')
+  };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `serenity_backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
+}
+async function importAll(file) {
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const data = JSON.parse(e.target.result);
+    for (let store of ['goals','projects','tasks','habits','habitLogs','notes','events']) {
+      await clear(store);
+      if (data[store]) for (let item of data[store]) await put(store, item);
+    }
+    renderView();
+    alert('백업을 성공적으로 불러왔습니다.');
+  };
+  reader.readAsText(file);
+}
+document.getElementById('exportBtn').addEventListener('click', exportAll);
+document.getElementById('importFile').addEventListener('change', e => importAll(e.target.files[0]));
+document.getElementById('syncBtn').addEventListener('click', () => {
+  alert('현재 브라우저에 모든 데이터가 안전하게 저장되어 있습니다.\n수동 백업/복원으로 동기화하거나, 추후 WebDAV/Dropbox 연동을 추가할 수 있습니다.');
+});
+
+// ==================== 초기화 ====================
+(async () => {
+  await openDB();
+  renderView();
+})();
 </script>
 </body>
 </html>
